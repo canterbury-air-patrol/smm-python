@@ -25,7 +25,9 @@ classifiers = [
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
 ]
-dependencies = []
+dependencies = [
+  "requests>=2.32.3",
+]
 
 [project.urls]
 Documentation = "https://github.com/canterbury-air-patrol/smm-python#readme"
