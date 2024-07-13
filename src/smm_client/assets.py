@@ -18,3 +18,17 @@ class SMMAsset:
 
     def __str__(self):
         return f"{self.name} ({self.id})"
+
+
+class SMMAssetType:
+    """
+    Search Management Map - Asset Type
+    """
+
+    def __init__(self, connection, type_id: int, name: str):
+        self.connection = connection
+        self.id = type_id
+        self.name = name
+
+    def __str__(self):
+        return f"{self.name} ({self.id})"

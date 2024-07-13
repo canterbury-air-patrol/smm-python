@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import requests
 
-from smm_client.assets import SMMAsset
+from smm_client.assets import SMMAsset, SMMAssetType
 from smm_client.missions import SMMMission
 
 
@@ -73,3 +73,12 @@ class SMMConnection:
         """
         missions_json = self.get_json(f"/mission/list/?only={only}")["missions"]
         return [SMMMission(self, mission_json["id"], mission_json["name"]) for mission_json in missions_json]
+
+    def get_asset_types(self) -> list[SMMAssetType]:
+        """
+        Get all asset types
+        """
+        asset_types_json = self.get_json("/assets/assettypes/")["asset_types"]
+        return [
+            SMMAssetType(self, asset_type_json["id"], asset_type_json["name"]) for asset_type_json in asset_types_json
+        ]
