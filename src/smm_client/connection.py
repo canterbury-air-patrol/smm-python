@@ -11,6 +11,7 @@ import requests
 
 from smm_client.assets import SMMAsset, SMMAssetType
 from smm_client.missions import SMMMission
+from smm_client.organizations import SMMOrganization
 
 
 class SMMConnection:
@@ -81,4 +82,15 @@ class SMMConnection:
         asset_types_json = self.get_json("/assets/assettypes/")["asset_types"]
         return [
             SMMAssetType(self, asset_type_json["id"], asset_type_json["name"]) for asset_type_json in asset_types_json
+        ]
+
+    def get_organizations(self, *, all_orgs=False) -> list[SMMOrganization]:
+        """
+        Get all Organizations
+        """
+        url = "/organization/" if all_orgs else "/organization/?only=mine"
+        organizations_json = self.get_json(url)["organizations"]
+        return [
+            SMMOrganization(self, organization_json["id"], organization_json["name"])
+            for organization_json in organizations_json
         ]
