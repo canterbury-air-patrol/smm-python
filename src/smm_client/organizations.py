@@ -10,6 +10,24 @@ from __future__ import annotations
 from smm_client.assets import SMMAsset
 
 
+class SMMOrganizationUser:
+    """
+    Search Management Map - User in an Organization
+    """
+
+    def __init__(self, organization: SMMOrganization, username: str, role: str, added, added_by, removed, removed_by):
+        self.organization = organization
+        self.username = username
+        self.role = role
+        self.added = added
+        self.added_by = added_by
+        self.removed = removed
+        self.removed_by = removed_by
+
+    def __str__(self):
+        return f"{self.username} ({self.role}) in {self.organization}"
+
+
 class SMMOrganizationAsset:
     """
     Search Management Map - Asset in an Organization
@@ -42,6 +60,21 @@ class SMMOrganization:
 
     def url_component(self, page: str):
         return f"/organization/{self.id}/{page}"
+
+    def get_members(self) -> list[SMMOrganizationUser]:
+        organization = self.connection.get_json(self.url_component(""))
+        return [
+            SMMOrganizationUser(
+                self,
+                member_json["user"],
+                member_json["role"],
+                member_json["added"],
+                member_json["added_by"],
+                member_json["removed"],
+                member_json["removed_by"],
+            )
+            for member_json in organization["members"]
+        ]
 
     def add_member(self, username: str, role: str = "M"):
         self.connection.post(self.url_component(f"user/{username}/"), data={"role": role})
