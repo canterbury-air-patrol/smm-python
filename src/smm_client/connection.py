@@ -95,7 +95,7 @@ class SMMConnection:
             for organization_json in organizations_json
         ]
 
-    def create_user(self, username : str, password : str):
+    def create_user(self, username: str, password: str):
         """
         Add a new user to this server
         """
