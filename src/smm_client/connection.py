@@ -94,3 +94,12 @@ class SMMConnection:
             SMMOrganization(self, organization_json["id"], organization_json["name"])
             for organization_json in organizations_json
         ]
+
+    def create_user(self, username : str, password : str):
+        """
+        Add a new user to this server
+        """
+        self.post(
+            "/admin/auth/user/add/",
+            {"username": username, "password1": password, "password2": password, "_save": "Save"},
+        )
