@@ -5,6 +5,9 @@
 Search Management Map - Missions
 """
 
+from smm_client.assets import SMMAsset
+from smm_client.organizations import SMMOrganization
+
 
 class SMMMission:
     """
@@ -18,3 +21,18 @@ class SMMMission:
 
     def __str__(self):
         return f"{self.name} ({self.id})"
+
+    def url_component(self, page: str):
+        return f"/mission/{self.id}/{page}"
+
+    def add_member(self, user: str):
+        self.connection.post(self.url_component("users/add/"), data={"user": user})
+
+    def add_organization(self, org: SMMOrganization):
+        self.connection.post(self.url_component("organizations/add/"), data={"organization": org.id})
+
+    def add_asset(self, asset: SMMAsset):
+        self.connection.post(self.url_component("assets/"), data={"asset": asset.id})
+
+    def remove_asset(self, asset: SMMAsset):
+        self.connection.get(self.url_component(f"assets/{asset.id}/remove/"))
