@@ -103,3 +103,31 @@ class SMMConnection:
             "/admin/auth/user/add/",
             {"username": username, "password1": password, "password2": password, "_save": "Save"},
         )
+
+    def create_asset_type(self, asset_type: str, description: str):
+        """
+        Create a new asset type
+        """
+        self.post("/admin/assets/assettype/add/", {"name": asset_type, "description": description, "_save": "Save"})
+
+    def create_asset(self, username, asset: str, asset_type: str):
+        """
+        Create a new asset
+        """
+        self.post("/admin/assets/asset/add/", {"name": asset, "owner": username, "asset_type": asset_type.id})
+
+    def create_mission(self, name: str, description: str) -> SMMMission | None:
+        """
+        Create a new mission
+        """
+        res = self.post("/mission/new/", {"mission_name": name, "mission_description": description})
+        if res.status_code == requests.codes.OK:
+            return SMMMission(self, res.url.split("/")[-3], name)
+        return None
+
+    def create_organization(self, name: str) -> SMMOrganization:
+        """
+        Create a new organization
+        """
+        org_json = self.post("/organization/", {"name": name}).json()
+        return SMMOrganization(self, org_json["id"], org_json["name"])

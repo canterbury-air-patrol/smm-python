@@ -36,3 +36,6 @@ class SMMMission:
 
     def remove_asset(self, asset: SMMAsset):
         self.connection.get(self.url_component(f"assets/{asset.id}/remove/"))
+
+    def close(self):
+        self.connection.get(self.url_component("close/"))
