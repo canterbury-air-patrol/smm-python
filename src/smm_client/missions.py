@@ -7,6 +7,7 @@ Search Management Map - Missions
 
 from smm_client.assets import SMMAsset
 from smm_client.organizations import SMMOrganization
+from smm_client.types import SMMPoint
 
 
 class SMMMission:
@@ -39,3 +40,8 @@ class SMMMission:
 
     def close(self):
         self.connection.get(self.url_component("close/"))
+
+    def add_waypoint(self, point: SMMPoint, label: str):
+        self.connection.post(
+            self.url_component("/data/pois/create/"), {"lat": point.lat, "lon": point.lon, "label": label}
+        )
