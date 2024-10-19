@@ -7,6 +7,7 @@ Search Management Map - Assets
 
 
 class SMMAsset:
+    # pylint: disable=R0903
     """
     Search Management Map - Asset
     """
@@ -21,6 +22,7 @@ class SMMAsset:
 
 
 class SMMAssetType:
+    # pylint: disable=R0903
     """
     Search Management Map - Asset Type
     """

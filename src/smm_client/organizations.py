@@ -11,11 +11,13 @@ from smm_client.assets import SMMAsset
 
 
 class SMMOrganizationUser:
+    # pylint: disable=R0903
     """
     Search Management Map - User in an Organization
     """
 
     def __init__(self, organization: SMMOrganization, username: str, role: str, added, added_by, removed, removed_by):
+        # pylint: disable=R0913, R0917
         self.organization = organization
         self.username = username
         self.role = role
@@ -29,11 +31,13 @@ class SMMOrganizationUser:
 
 
 class SMMOrganizationAsset:
+    # pylint: disable=R0903
     """
     Search Management Map - Asset in an Organization
     """
 
     def __init__(self, organization: SMMOrganization, asset: SMMAsset, added, added_by, removed, removed_by):
+        # pylint: disable=R0913, R0917
         self.organization = organization
         self.asset = asset
         self.added = added
@@ -58,11 +62,14 @@ class SMMOrganization:
     def __str__(self):
         return self.name
 
-    def url_component(self, page: str):
+    def __url_component(self, page: str):
         return f"/organization/{self.id}/{page}"
 
     def get_members(self) -> list[SMMOrganizationUser]:
-        organization = self.connection.get_json(self.url_component(""))
+        """
+        Get all the members of this organization
+        """
+        organization = self.connection.get_json(self.__url_component(""))
         return [
             SMMOrganizationUser(
                 self,
@@ -77,13 +84,22 @@ class SMMOrganization:
         ]
 
     def add_member(self, username: str, role: str = "M"):
-        self.connection.post(self.url_component(f"user/{username}/"), data={"role": role})
+        """
+        Add a new member (or update an existing members role)
+        """
+        self.connection.post(self.__url_component(f"user/{username}/"), data={"role": role})
 
     def remove_member(self, username: str):
-        self.connection.delete(self.url_component(f"user/{username}/"))
+        """
+        Remove a member from this organization
+        """
+        self.connection.delete(self.__url_component(f"user/{username}/"))
 
     def get_assets(self) -> list[SMMOrganizationAsset]:
-        assets_json = self.connection.get_json(self.url_component("assets/"))["assets"]
+        """
+        Get all the assets in this organization
+        """
+        assets_json = self.connection.get_json(self.__url_component("assets/"))["assets"]
         return [
             SMMOrganizationAsset(
                 self,
@@ -97,7 +113,13 @@ class SMMOrganization:
         ]
 
     def add_asset(self, asset: SMMAsset):
-        self.connection.post(self.url_component(f"assets/{asset.id}/"))
+        """
+        Add an asset to this organization
+        """
+        self.connection.post(self.__url_component(f"assets/{asset.id}/"))
 
     def remove_asset(self, asset: SMMAsset):
-        self.connection.delete(self.url_component(f"assets/{asset.id}/"))
+        """
+        Remove an asset from this organization
+        """
+        self.connection.delete(self.__url_component(f"assets/{asset.id}/"))

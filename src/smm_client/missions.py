@@ -23,25 +23,43 @@ class SMMMission:
     def __str__(self):
         return f"{self.name} ({self.id})"
 
-    def url_component(self, page: str):
+    def __url_component(self, page: str):
         return f"/mission/{self.id}/{page}"
 
     def add_member(self, user: str):
-        self.connection.post(self.url_component("users/add/"), data={"user": user})
+        """
+        Add a member to this mission
+        """
+        self.connection.post(self.__url_component("users/add/"), data={"user": user})
 
     def add_organization(self, org: SMMOrganization):
-        self.connection.post(self.url_component("organizations/add/"), data={"organization": org.id})
+        """
+        Add an organization to this mission
+        """
+        self.connection.post(self.__url_component("organizations/add/"), data={"organization": org.id})
 
     def add_asset(self, asset: SMMAsset):
-        self.connection.post(self.url_component("assets/"), data={"asset": asset.id})
+        """
+        Add an asset to this mission
+        """
+        self.connection.post(self.__url_component("assets/"), data={"asset": asset.id})
 
     def remove_asset(self, asset: SMMAsset):
-        self.connection.get(self.url_component(f"assets/{asset.id}/remove/"))
+        """
+        Remove an asset from this mission
+        """
+        self.connection.get(self.__url_component(f"assets/{asset.id}/remove/"))
 
     def close(self):
-        self.connection.get(self.url_component("close/"))
+        """
+        Close this mission
+        """
+        self.connection.get(self.__url_component("close/"))
 
     def add_waypoint(self, point: SMMPoint, label: str):
+        """
+        Add a way point to this mission
+        """
         self.connection.post(
-            self.url_component("/data/pois/create/"), {"lat": point.lat, "lon": point.lon, "label": label}
+            self.__url_component("/data/pois/create/"), {"lat": point.lat, "lon": point.lon, "label": label}
         )

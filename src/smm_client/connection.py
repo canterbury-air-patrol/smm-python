@@ -121,7 +121,7 @@ class SMMConnection:
         Create a new mission
         """
         res = self.post("/mission/new/", {"mission_name": name, "mission_description": description})
-        if res.status_code == requests.codes.OK:
+        if res.status_code == requests.codes["ok"]:
             return SMMMission(self, res.url.split("/")[-3], name)
         return None
 
