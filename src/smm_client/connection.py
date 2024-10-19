@@ -117,17 +117,27 @@ class SMMConnection:
         url_parts = result.url.split("/")
         return SMMUser(url_parts[-3], username)
 
-    def create_asset_type(self, asset_type: str, description: str):
+    def create_asset_type(self, asset_type: str, description: str) -> SMMAssetType:
         """
         Create a new asset type
         """
-        self.post("/admin/assets/assettype/add/", {"name": asset_type, "description": description, "_save": "Save"})
+        result = self.post(
+            "/admin/assets/assettype/add/",
+            {"name": asset_type, "description": description, "_continue": "Save+and+continue+editing"},
+        )
+        url_parts = result.url.split("/")
+        return SMMAssetType(self, url_parts[-3], asset_type)
 
-    def create_asset(self, user: SMMUser, asset: str, asset_type: str):
+    def create_asset(self, user: SMMUser, asset: str, asset_type: SMMAssetType) -> SMMAsset:
         """
         Create a new asset
         """
-        self.post("/admin/assets/asset/add/", {"name": asset, "owner": user.id, "asset_type": asset_type.id})
+        result = self.post(
+            "/admin/assets/asset/add/",
+            {"name": asset, "owner": user.id, "asset_type": asset_type.id, "_continue": "Save+and+continue+editing"},
+        )
+        url_parts = result.url.split("/")
+        return SMMAsset(self, url_parts[-3], asset)
 
     def create_mission(self, name: str, description: str) -> SMMMission | None:
         """
