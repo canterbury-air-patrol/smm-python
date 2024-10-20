@@ -9,6 +9,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import requests
+
+from smm_client.geometry import SMMPoi
+
 if TYPE_CHECKING:
     from smm_client.assets import SMMAsset
     from smm_client.organizations import SMMOrganization
@@ -73,6 +77,10 @@ class SMMMission:
         """
         Add a way point to this mission
         """
-        self.connection.post(
-            self.__url_component("/data/pois/create/"), {"lat": point.lat, "lon": point.lon, "label": label}
+        results = self.connection.post(
+            self.__url_component("data/pois/create/"), {"lat": point.lat, "lon": point.lng, "label": label}
         )
+        if results.status_code == requests.codes["ok"]:
+            json_obj = results.json()
+            return SMMPoi(self, json_obj["features"][0]["properties"]["pk"])
+        return None
