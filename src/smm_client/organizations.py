@@ -7,7 +7,12 @@ Search Management Map - Organizations
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from smm_client.assets import SMMAsset
+
+if TYPE_CHECKING:
+    from smm_client.connection import SMMUser
 
 
 class SMMOrganizationUser:
@@ -83,17 +88,17 @@ class SMMOrganization:
             for member_json in organization["members"]
         ]
 
-    def add_member(self, username: str, role: str = "M"):
+    def add_member(self, user: SMMUser, role: str = "M"):
         """
         Add a new member (or update an existing members role)
         """
-        self.connection.post(self.__url_component(f"user/{username}/"), data={"role": role})
+        self.connection.post(self.__url_component(f"user/{user.username}/"), data={"role": role})
 
-    def remove_member(self, username: str):
+    def remove_member(self, user: SMMUser):
         """
         Remove a member from this organization
         """
-        self.connection.delete(self.__url_component(f"user/{username}/"))
+        self.connection.delete(self.__url_component(f"user/{user.username}/"))
 
     def get_assets(self) -> list[SMMOrganizationAsset]:
         """

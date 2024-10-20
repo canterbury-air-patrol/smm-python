@@ -14,6 +14,17 @@ from smm_client.missions import SMMMission
 from smm_client.organizations import SMMOrganization
 
 
+# pylint: disable = R0903
+class SMMUser:
+    """
+    User in Search Management Map
+    """
+
+    def __init__(self, user_id: int, username: str):
+        self.id = user_id
+        self.username = username
+
+
 class SMMConnection:
     """
     Create a connection to the Search Management Map Server
@@ -95,14 +106,16 @@ class SMMConnection:
             for organization_json in organizations_json
         ]
 
-    def create_user(self, username: str, password: str):
+    def create_user(self, username: str, password: str) -> SMMUser:
         """
         Add a new user to this server
         """
-        self.post(
+        result = self.post(
             "/admin/auth/user/add/",
             {"username": username, "password1": password, "password2": password, "_save": "Save"},
         )
+        url_parts = result.url.split("/")
+        return SMMUser(url_parts[-3], username)
 
     def create_asset_type(self, asset_type: str, description: str):
         """
@@ -110,11 +123,11 @@ class SMMConnection:
         """
         self.post("/admin/assets/assettype/add/", {"name": asset_type, "description": description, "_save": "Save"})
 
-    def create_asset(self, username, asset: str, asset_type: str):
+    def create_asset(self, user: SMMUser, asset: str, asset_type: str):
         """
         Create a new asset
         """
-        self.post("/admin/assets/asset/add/", {"name": asset, "owner": username, "asset_type": asset_type.id})
+        self.post("/admin/assets/asset/add/", {"name": asset, "owner": user.id, "asset_type": asset_type.id})
 
     def create_mission(self, name: str, description: str) -> SMMMission | None:
         """
