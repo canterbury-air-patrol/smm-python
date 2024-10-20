@@ -5,9 +5,14 @@
 Search Management Map - Missions
 """
 
-from smm_client.assets import SMMAsset
-from smm_client.organizations import SMMOrganization
-from smm_client.types import SMMPoint
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from smm_client.assets import SMMAsset
+    from smm_client.organizations import SMMOrganization
+    from smm_client.types import SMMPoint
 
 
 class SMMMission:
@@ -55,6 +60,14 @@ class SMMMission:
         Close this mission
         """
         self.connection.get(self.__url_component("close/"))
+
+    def assets(self, include: str = "active") -> list[str]:
+        """
+        Get all the assets in this mission
+
+        Use include="removed" to see get all assets that were ever in the mission
+        """
+        return self.connection.get_json(self.__url_component(f"assets/?include_removed={include == "removed"}"))
 
     def add_waypoint(self, point: SMMPoint, label: str):
         """
