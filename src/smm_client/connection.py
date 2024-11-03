@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import requests
 
-from smm_client.assets import SMMAsset, SMMAssetType
+from smm_client.assets import SMMAsset, SMMAssetStatusValue, SMMAssetType
 from smm_client.missions import SMMMission
 from smm_client.organizations import SMMOrganization
 
@@ -93,6 +93,21 @@ class SMMConnection:
         asset_types_json = self.get_json("/assets/assettypes/")["asset_types"]
         return [
             SMMAssetType(self, asset_type_json["id"], asset_type_json["name"]) for asset_type_json in asset_types_json
+        ]
+
+    def get_asset_status_values(self) -> list[SMMAssetStatusValue]:
+        """
+        Get all the asset status values
+        """
+        asset_status_values_json = self.get_json("/assets/status/values/")["values"]
+        return [
+            SMMAssetStatusValue(
+                asset_status_value["id"],
+                asset_status_value["name"],
+                asset_status_value["description"],
+                inop=asset_status_value["inop"],
+            )
+            for asset_status_value in asset_status_values_json
         ]
 
     def get_organizations(self, *, all_orgs=False) -> list[SMMOrganization]:
