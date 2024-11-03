@@ -66,3 +66,48 @@ class SMMPoi(SMMGeometry):
             json_obj = result.json()
             return json_obj["features"][0]["properties"]["pk"]
         return None
+
+
+class SMMLine(SMMGeometry):
+    """
+    Search Management Map - Line
+    """
+
+    def create_shoreline_search(self, sweep_width: int, asset_type: SMMAssetType) -> int | None:
+        """
+        Create a shoreline search along this line
+        """
+        result = self.connection.post(
+            "search/shoreline/create/",
+            data={"poi_id": self.geo_id, "asset_type_id": asset_type.id, "sweep_width": sweep_width},
+        )
+        if result.status_code == requests.codes["ok"]:
+            json_obj = result.json()
+            return json_obj["features"][0]["properties"]["pk"]
+        return None
+
+    def create_trackline_search(self, sweep_width: int, asset_type: SMMAssetType) -> int | None:
+        """
+        Create a trackline search along this line
+        """
+        result = self.connection.post(
+            "search/shoreline/create/",
+            data={"poi_id": self.geo_id, "asset_type_id": asset_type.id, "sweep_width": sweep_width},
+        )
+        if result.status_code == requests.codes["ok"]:
+            json_obj = result.json()
+            return json_obj["features"][0]["properties"]["pk"]
+        return None
+
+    def create_creepingline_search(self, sweep_width: int, asset_type: SMMAssetType, width: int) -> int | None:
+        """
+        Create a creeping line ahead search along this line
+        """
+        result = self.connection.post(
+            "search/creepingline/create/track/",
+            data={"poi_id": self.geo_id, "asset_type_id": asset_type.id, "sweep_width": sweep_width, "width": width},
+        )
+        if result.status_code == requests.codes["ok"]:
+            json_obj = result.json()
+            return json_obj["features"][0]["properties"]["pk"]
+        return None

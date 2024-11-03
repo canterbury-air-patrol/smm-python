@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 
 import requests
 
-from smm_client.geometry import SMMPoi
+from smm_client.geometry import SMMLine, SMMPoi
 
 if TYPE_CHECKING:
     from smm_client.assets import SMMAsset
@@ -94,6 +94,25 @@ class SMMMission:
         results = self.connection.post(
             self.__url_component("data/pois/create/"), {"lat": point.lat, "lon": point.lng, "label": label}
         )
+        if results.status_code == requests.codes["ok"]:
+            json_obj = results.json()
+            return SMMPoi(self, json_obj["features"][0]["properties"]["pk"])
+        return None
+
+    def add_line(self, points: list[SMMPoint], label: str) -> SMMLine | None:
+        """
+        Add a line to this mission
+        """
+        data = {
+            "points": len(points),
+            "label": label,
+        }
+        i = 0
+        for point in points:
+            data[f"point{i}_lat"] = point.lat
+            data[f"point{i}_lng"] = point.lng
+            i = i + 1
+        results = self.connection.post(self.__url_component("data/pois/create/"), data)
         if results.status_code == requests.codes["ok"]:
             json_obj = results.json()
             return SMMPoi(self, json_obj["features"][0]["properties"]["pk"])
