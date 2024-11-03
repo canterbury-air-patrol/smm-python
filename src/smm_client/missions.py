@@ -59,6 +59,20 @@ class SMMMission:
         """
         self.connection.get(self.__url_component(f"assets/{asset.id}/remove/"))
 
+    def set_asset_command(self, asset: SMMAsset, command: str, reason: str, point: SMMPoint | None = None) -> None:
+        """
+        Set the command for a specific asset
+        """
+        data = {
+            "asset": asset.id,
+            "command": command,
+            "reason": reason,
+        }
+        if point is not None:
+            data["latitude"] = point.latitude
+            data["longitude"] = point.longitude
+        self.connection.post(self.__url_component("assets/command/set/"), data)
+
     def close(self) -> None:
         """
         Close this mission

@@ -7,6 +7,8 @@ Search Management Map - Assets
 
 from __future__ import annotations
 
+from smm_client.types import SMMPoint
+
 
 class SMMAssetStatusValue:
     # pylint: disable=R0903
@@ -33,6 +35,25 @@ class SMMAssetStatus:
         self.inop = data["inop"]
         self.since = data["since"]
         self.notes = data["notes"]
+
+
+class SMMAssetCommand:
+    # pylint: disable=R0903, R0902
+    """
+    Search Management Map - Asset Command
+    """
+
+    def __init__(self, asset: SMMAsset, data: dict) -> None:
+        self.asset = asset
+        self.issued = data["issued"]
+        self.issued_by = data["issued_by"]
+        self.command = data["action_txt"]
+        if "latitude" in data and "longitude" in data:
+            self.position = SMMPoint(data["latitude"], data["longitude"])
+        self.reason = data["reason"]
+        self.responded_by = data["response"]["by"]
+        self.response_type = data["response"]["type"]
+        self.response_message = data["response"]["message"]
 
 
 class SMMAsset:
@@ -69,6 +90,15 @@ class SMMAsset:
                 "notes": notes,
             },
         )
+
+    def get_command(self) -> SMMAssetCommand | None:
+        """
+        Get the command that currently applies to this asset
+        """
+        data = self.connection.get_json(self.__url_component("command/"))
+        if data is not None:
+            return SMMAssetCommand(self, data)
+        return None
 
     def __str__(self) -> str:
         return f"{self.name} ({self.id})"
