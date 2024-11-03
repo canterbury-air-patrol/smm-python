@@ -21,7 +21,9 @@ class SMMOrganizationUser:
     Search Management Map - User in an Organization
     """
 
-    def __init__(self, organization: SMMOrganization, username: str, role: str, added, added_by, removed, removed_by):
+    def __init__(
+        self, organization: SMMOrganization, username: str, role: str, added, added_by, removed, removed_by
+    ) -> None:
         # pylint: disable=R0913, R0917
         self.organization = organization
         self.username = username
@@ -31,7 +33,7 @@ class SMMOrganizationUser:
         self.removed = removed
         self.removed_by = removed_by
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.username} ({self.role}) in {self.organization}"
 
 
@@ -41,7 +43,7 @@ class SMMOrganizationAsset:
     Search Management Map - Asset in an Organization
     """
 
-    def __init__(self, organization: SMMOrganization, asset: SMMAsset, added, added_by, removed, removed_by):
+    def __init__(self, organization: SMMOrganization, asset: SMMAsset, added, added_by, removed, removed_by) -> None:
         # pylint: disable=R0913, R0917
         self.organization = organization
         self.asset = asset
@@ -50,7 +52,7 @@ class SMMOrganizationAsset:
         self.removed = removed
         self.removed_by = removed_by
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.asset} in {self.organization}"
 
 
@@ -59,15 +61,15 @@ class SMMOrganization:
     Search Management Map - Organization
     """
 
-    def __init__(self, connection, org_id: int, name: str):
+    def __init__(self, connection, org_id: int, name: str) -> None:
         self.connection = connection
         self.id = org_id
         self.name = name
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
-    def __url_component(self, page: str):
+    def __url_component(self, page: str) -> str:
         return f"/organization/{self.id}/{page}"
 
     def get_members(self) -> list[SMMOrganizationUser]:
@@ -88,13 +90,13 @@ class SMMOrganization:
             for member_json in organization["members"]
         ]
 
-    def add_member(self, user: SMMUser, role: str = "M"):
+    def add_member(self, user: SMMUser, role: str = "M") -> None:
         """
         Add a new member (or update an existing members role)
         """
         self.connection.post(self.__url_component(f"user/{user.username}/"), data={"role": role})
 
-    def remove_member(self, user: SMMUser):
+    def remove_member(self, user: SMMUser) -> None:
         """
         Remove a member from this organization
         """
@@ -117,13 +119,13 @@ class SMMOrganization:
             for asset_json in assets_json
         ]
 
-    def add_asset(self, asset: SMMAsset):
+    def add_asset(self, asset: SMMAsset) -> None:
         """
         Add an asset to this organization
         """
         self.connection.post(self.__url_component(f"assets/{asset.id}/"))
 
-    def remove_asset(self, asset: SMMAsset):
+    def remove_asset(self, asset: SMMAsset) -> None:
         """
         Remove an asset from this organization
         """

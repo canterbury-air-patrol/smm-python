@@ -22,7 +22,7 @@ class SMMGeometry:
     Search Management Map - Parent class for user geometry
     """
 
-    def __init__(self, mission: SMMMission, geo_id: int):
+    def __init__(self, mission: SMMMission, geo_id: int) -> None:
         self.connection = mission.connection
         self.mission = mission
         self.geo_id = geo_id
@@ -33,7 +33,7 @@ class SMMPoi(SMMGeometry):
     Search Management Map - Point of Interest
     """
 
-    def create_sector_search(self, sweep_width: int, asset_type: SMMAssetType):
+    def create_sector_search(self, sweep_width: int, asset_type: SMMAssetType) -> int | None:
         """
         Create a sector search starting at this POI
         """
@@ -48,7 +48,7 @@ class SMMPoi(SMMGeometry):
 
     def create_expanding_box_search(
         self, sweep_width: int, asset_type: SMMAssetType, iterations: int, first_bearing: int = 0
-    ):
+    ) -> int | None:
         """
         Create an expanding box search starting at this POI
         """

@@ -20,7 +20,7 @@ class SMMUser:
     User in Search Management Map
     """
 
-    def __init__(self, user_id: int, username: str):
+    def __init__(self, user_id: int, username: str) -> None:
         self.id = user_id
         self.username = username
 
@@ -30,14 +30,14 @@ class SMMConnection:
     Create a connection to the Search Management Map Server
     """
 
-    def __init__(self, url: str, username: str, password: str):
+    def __init__(self, url: str, username: str, password: str) -> None:
         self.base_url = url
         self.username = username
         self.password = password
         self.session = requests.Session()
         self.login()
 
-    def get(self, path=None):
+    def get(self, path=None) -> requests.Response:
         """
         GET path on this connection
         """
@@ -51,21 +51,21 @@ class SMMConnection:
         url = f"{self.base_url}/{path}"
         return self.session.get(url, headers={"Accept": "application/json"}).json()
 
-    def post(self, path: str, data=None):
+    def post(self, path: str, data=None) -> requests.Response:
         """
         POST data to path on this connection
         """
         url = f"{self.base_url}/{path}"
         return self.session.post(url, data=data, headers={"X-CSRFToken": self.session.cookies["csrftoken"]})
 
-    def delete(self, path: str):
+    def delete(self, path: str) -> requests.Response:
         """
         DELETE path on this connection
         """
         url = f"{self.base_url}/{path}"
         return self.session.delete(url, headers={"X-CSRFToken": self.session.cookies["csrftoken"]})
 
-    def login(self):
+    def login(self) -> None:
         """
         Login to the server
         """

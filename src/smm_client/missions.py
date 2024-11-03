@@ -24,42 +24,42 @@ class SMMMission:
     Search Management Map - Mission
     """
 
-    def __init__(self, connection, mission_id: int, name: str):
+    def __init__(self, connection, mission_id: int, name: str) -> None:
         self.connection = connection
         self.id = mission_id
         self.name = name
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.name} ({self.id})"
 
-    def __url_component(self, page: str):
+    def __url_component(self, page: str) -> str:
         return f"/mission/{self.id}/{page}"
 
-    def add_member(self, user: str):
+    def add_member(self, user: str) -> None:
         """
         Add a member to this mission
         """
         self.connection.post(self.__url_component("users/add/"), data={"user": user})
 
-    def add_organization(self, org: SMMOrganization):
+    def add_organization(self, org: SMMOrganization) -> None:
         """
         Add an organization to this mission
         """
         self.connection.post(self.__url_component("organizations/add/"), data={"organization": org.id})
 
-    def add_asset(self, asset: SMMAsset):
+    def add_asset(self, asset: SMMAsset) -> None:
         """
         Add an asset to this mission
         """
         self.connection.post(self.__url_component("assets/"), data={"asset": asset.id})
 
-    def remove_asset(self, asset: SMMAsset):
+    def remove_asset(self, asset: SMMAsset) -> None:
         """
         Remove an asset from this mission
         """
         self.connection.get(self.__url_component(f"assets/{asset.id}/remove/"))
 
-    def close(self):
+    def close(self) -> None:
         """
         Close this mission
         """
@@ -73,7 +73,7 @@ class SMMMission:
         """
         return self.connection.get_json(self.__url_component(f"assets/?include_removed={include == "removed"}"))
 
-    def add_waypoint(self, point: SMMPoint, label: str):
+    def add_waypoint(self, point: SMMPoint, label: str) -> SMMPoi | None:
         """
         Add a way point to this mission
         """

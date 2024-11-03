@@ -16,7 +16,7 @@ class LatitudeError(ValueError):
     Class for errors with latitudes
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(f"Latitude out of range ({MIN_LATITUDE}, {MAX_LATITUDE} degrees)")
 
 
@@ -25,7 +25,7 @@ class LongitudeError(ValueError):
     Class for errors with longitude
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(f"Longitude out of range ({MIN_LONGITUDE}, {MAX_LONGITUDE} degrees)")
 
 
@@ -35,13 +35,13 @@ class SMMPoint:
     Latitude/Longitude combination
     """
 
-    def __init__(self, latitude: float, longitude: float):
+    def __init__(self, latitude: float, longitude: float) -> None:
         self._lat = None
         self._lng = None
         self.lat = latitude
         self.lng = longitude
 
-    def __set_lat(self, lat: float):
+    def __set_lat(self, lat: float) -> None:
         if lat < MIN_LATITUDE or lat > MAX_LATITUDE:
             raise LatitudeError
         self._lat = lat
@@ -52,7 +52,7 @@ class SMMPoint:
         """
         return self._lat
 
-    def __set_lng(self, lng: float):
+    def __set_lng(self, lng: float) -> None:
         if lng < MIN_LONGITUDE or lng > MAX_LONGITUDE:
             raise LongitudeError
         self._lng = lng
