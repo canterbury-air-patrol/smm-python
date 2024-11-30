@@ -143,6 +143,17 @@ class SMMConnection:
         url_parts = result.url.split("/")
         return SMMAssetType(self, url_parts[-3], asset_type)
 
+    def get_or_create_asset_type(self, asset_type: str, description: str) -> SMMAssetType:
+        """
+        Get the asset type that matches this asset type
+        Otherwise create it
+        """
+        asset_types = self.get_asset_types()
+        for at in asset_types:
+            if at.name == asset_type:
+                return at
+        return self.create_asset_type(asset_type, description)
+
     def create_asset(self, user: SMMUser, asset: str, asset_type: SMMAssetType) -> SMMAsset:
         """
         Create a new asset
@@ -169,3 +180,14 @@ class SMMConnection:
         """
         org_json = self.post("/organization/", {"name": name}).json()
         return SMMOrganization(self, org_json["id"], org_json["name"])
+
+    def get_or_create_organization(self, name: str) -> SMMOrganization:
+        """
+        Get the organization that matches name
+        Will be created if it doesn't already exist
+        """
+        organizations = self.get_organizations()
+        for org in organizations:
+            if org.name == name:
+                return org
+        return self.create_organization(name)
