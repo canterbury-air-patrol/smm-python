@@ -14,9 +14,66 @@ import requests
 from smm_client.geometry import SMMLine, SMMPoi, SMMPolygon
 
 if TYPE_CHECKING:
-    from smm_client.assets import SMMAsset
+    from smm_client.assets import SMMAsset, SMMUser
+    from smm_client.connection import SMMConnection
     from smm_client.organizations import SMMOrganization
     from smm_client.types import SMMPoint
+
+
+class SMMMissionOrganization:
+    """
+    Search Management Map - Organization membership of a Mission
+    """
+
+    def __init__(self, mission: SMMMission, organization: SMMOrganization) -> None:
+        self.mission = mission
+        self.organization = organization
+
+    def set_can_add_organizations(self, *, value: bool) -> bool:
+        """
+        Set whether this organization can add organizations or not
+        """
+        response = self.mission.post(f"organizations/{self.organization.id}/", {"add_organization": value})
+        return response.status_code == requests.codes["ok"]
+
+    def set_can_add_users(self, *, value: bool) -> bool:
+        """
+        Set whether this organization can add members or not
+        """
+        response = self.mission.post(f"organizations/{self.organization.id}/", {"add_user": value})
+        return response.status_code == requests.codes["ok"]
+
+
+class SMMMissionMember:
+    """
+    Search Management Map - User membership of a Mission
+    """
+
+    def __init__(self, mission: SMMMission, user: SMMUser) -> None:
+        self.mission = mission
+        self.user = user
+
+    def set_is_admin(self, *, value: bool) -> bool:
+        """
+        Set whether this user is an admin or not
+        Admins have all other permissions as well
+        """
+        response = self.mission.post(f"users/{self.user.id}/", {"admin": value})
+        return response.status_code == requests.codes["ok"]
+
+    def set_can_add_organizations(self, *, value: bool) -> bool:
+        """
+        Set whether this organization can add organizations or not
+        """
+        response = self.mission.post(f"users/{self.user.id}/", {"add_organization": value})
+        return response.status_code == requests.codes["ok"]
+
+    def set_can_add_users(self, *, value: bool) -> bool:
+        """
+        Set whether this organization can add members or not
+        """
+        response = self.mission.post(f"users/{self.user.id}/", {"add_user": value})
+        return response.status_code == requests.codes["ok"]
 
 
 class SMMMission:
@@ -24,7 +81,7 @@ class SMMMission:
     Search Management Map - Mission
     """
 
-    def __init__(self, connection, mission_id: int, name: str) -> None:
+    def __init__(self, connection: SMMConnection, mission_id: int, name: str) -> None:
         self.connection = connection
         self.id = mission_id
         self.name = name
@@ -35,23 +92,31 @@ class SMMMission:
     def __url_component(self, page: str) -> str:
         return f"/mission/{self.id}/{page}"
 
-    def add_member(self, user: str) -> None:
+    def post(self, page: str, data: object):
+        """
+        Post data to a specific url in this mission
+        """
+        return self.connection.post(self.__url_component(page), data)
+
+    def add_member(self, user: SMMUser) -> None:
         """
         Add a member to this mission
         """
-        self.connection.post(self.__url_component("users/add/"), data={"user": user})
+        self.post("users/add/", data={"user": user.username})
+        return SMMMissionMember(self, user)
 
-    def add_organization(self, org: SMMOrganization) -> None:
+    def add_organization(self, organization: SMMOrganization) -> None:
         """
         Add an organization to this mission
         """
-        self.connection.post(self.__url_component("organizations/add/"), data={"organization": org.id})
+        self.post("organizations/add/", data={"organization": organization.id})
+        return SMMMissionOrganization(self, organization)
 
     def add_asset(self, asset: SMMAsset) -> None:
         """
         Add an asset to this mission
         """
-        self.connection.post(self.__url_component("assets/"), data={"asset": asset.id})
+        self.post("assets/", data={"asset": asset.id})
 
     def remove_asset(self, asset: SMMAsset) -> None:
         """
@@ -71,7 +136,7 @@ class SMMMission:
         if point is not None:
             data["latitude"] = point.latitude
             data["longitude"] = point.longitude
-        self.connection.post(self.__url_component("assets/command/set/"), data)
+        self.post("assets/command/set/", data)
 
     def close(self) -> None:
         """
@@ -91,9 +156,7 @@ class SMMMission:
         """
         Add a way point to this mission
         """
-        results = self.connection.post(
-            self.__url_component("data/pois/create/"), {"lat": point.lat, "lon": point.lng, "label": label}
-        )
+        results = self.post("data/pois/create/", {"lat": point.lat, "lon": point.lng, "label": label})
         if results.status_code == requests.codes["ok"]:
             json_obj = results.json()
             return SMMPoi(self, json_obj["features"][0]["properties"]["pk"])
@@ -119,7 +182,7 @@ class SMMMission:
         Add a line to this mission
         """
         data = self._populate_points(points, label)
-        results = self.connection.post(self.__url_component("data/userlines/create/"), data)
+        results = self.post("data/userlines/create/", data)
         if results.status_code == requests.codes["ok"]:
             json_obj = results.json()
             return SMMLine(self, json_obj["features"][0]["properties"]["pk"])
@@ -130,7 +193,7 @@ class SMMMission:
         Add a polygon to this mission
         """
         data = self._populate_points(points, label)
-        results = self.connection.post(self.__url_component("data/userpolygons/create/"), data)
+        results = self.post("data/userpolygons/create/", data)
         if results.status_code == requests.codes["ok"]:
             json_obj = results.json()
             return SMMPolygon(self, json_obj["features"][0]["properties"]["pk"])
