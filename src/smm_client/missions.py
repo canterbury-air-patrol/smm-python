@@ -112,8 +112,8 @@ class SMMMission:
             data[f"point{i}_lat"] = point.lat
             data[f"point{i}_lng"] = point.lng
             i = i + 1
-        results = self.connection.post(self.__url_component("data/pois/create/"), data)
+        results = self.connection.post(self.__url_component("data/userlines/create/"), data)
         if results.status_code == requests.codes["ok"]:
             json_obj = results.json()
-            return SMMPoi(self, json_obj["features"][0]["properties"]["pk"])
+            return SMMLine(self, json_obj["features"][0]["properties"]["pk"])
         return None
