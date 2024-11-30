@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 
 import requests
 
-from smm_client.geometry import SMMLine, SMMPoi
+from smm_client.geometry import SMMLine, SMMPoi, SMMPolygon
 
 if TYPE_CHECKING:
     from smm_client.assets import SMMAsset
@@ -99,9 +99,9 @@ class SMMMission:
             return SMMPoi(self, json_obj["features"][0]["properties"]["pk"])
         return None
 
-    def add_line(self, points: list[SMMPoint], label: str) -> SMMLine | None:
+    def _populate_points(self, points: list[SMMPoint], label) -> object:
         """
-        Add a line to this mission
+        Add the points to data
         """
         data = {
             "points": len(points),
@@ -112,8 +112,26 @@ class SMMMission:
             data[f"point{i}_lat"] = point.lat
             data[f"point{i}_lng"] = point.lng
             i = i + 1
+        return data
+
+    def add_line(self, points: list[SMMPoint], label: str) -> SMMLine | None:
+        """
+        Add a line to this mission
+        """
+        data = self._populate_points(points, label)
         results = self.connection.post(self.__url_component("data/userlines/create/"), data)
         if results.status_code == requests.codes["ok"]:
             json_obj = results.json()
             return SMMLine(self, json_obj["features"][0]["properties"]["pk"])
+        return None
+
+    def add_polygon(self, points: list[SMMPoint], label: str) -> SMMPolygon | None:
+        """
+        Add a polygon to this mission
+        """
+        data = self._populate_points(points, label)
+        results = self.connection.post(self.__url_component("data/userpolygons/create/"), data)
+        if results.status_code == requests.codes["ok"]:
+            json_obj = results.json()
+            return SMMPolygon(self, json_obj["features"][0]["properties"]["pk"])
         return None

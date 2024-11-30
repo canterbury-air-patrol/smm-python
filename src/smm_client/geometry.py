@@ -111,3 +111,22 @@ class SMMLine(SMMGeometry):
             json_obj = result.json()
             return json_obj["features"][0]["properties"]["pk"]
         return None
+
+
+class SMMPolygon(SMMGeometry):
+    """
+    Search Management Map -- Polygon
+    """
+
+    def create_creepingline_search(self, sweep_width: int, asset_type: SMMAssetType) -> int | None:
+        """
+        Create a creeping line ahead search inside this polygon
+        """
+        result = self.connection.post(
+            "search/creepingline/create/polygon/",
+            data={"poi_id": self.geo_id, "asset_type_id": asset_type.id, "sweep_width": sweep_width},
+        )
+        if result.status_code == requests.codes["ok"]:
+            json_obj = result.json()
+            return json_obj["features"][0]["properties"]["pk"]
+        return None
