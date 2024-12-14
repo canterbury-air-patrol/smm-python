@@ -150,7 +150,8 @@ class SMMMission:
 
         Use include="removed" to see get all assets that were ever in the mission
         """
-        return self.connection.get_json(self.__url_component(f"assets/?include_removed={include == "removed"}"))
+        include_removed = str(include == "removed")
+        return self.connection.get_json(self.__url_component(f"assets/?include_removed={include_removed}"))
 
     def add_waypoint(self, point: SMMPoint, label: str) -> SMMPoi | None:
         """
