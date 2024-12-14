@@ -98,14 +98,14 @@ class SMMMission:
         """
         return self.connection.post(self.__url_component(page), data)
 
-    def add_member(self, user: SMMUser) -> None:
+    def add_member(self, user: SMMUser) -> SMMMissionMember:
         """
         Add a member to this mission
         """
         self.post("users/add/", data={"user": user.username})
         return SMMMissionMember(self, user)
 
-    def add_organization(self, organization: SMMOrganization) -> None:
+    def add_organization(self, organization: SMMOrganization) -> SMMMissionOrganization:
         """
         Add an organization to this mission
         """
