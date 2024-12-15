@@ -10,7 +10,7 @@ from __future__ import annotations
 import requests
 
 from smm_client.assets import SMMAsset, SMMAssetStatusValue, SMMAssetType
-from smm_client.missions import SMMMission
+from smm_client.missions import SMMMission, SMMMissionAssetStatusValue
 from smm_client.organizations import SMMOrganization
 
 
@@ -26,6 +26,7 @@ class SMMUser:
 
 
 class SMMConnection:
+    # pylint: disable=R0904
     """
     Create a connection to the Search Management Map Server
     """
@@ -95,6 +96,17 @@ class SMMConnection:
             SMMAssetType(self, asset_type_json["id"], asset_type_json["name"]) for asset_type_json in asset_types_json
         ]
 
+    def create_asset_status_value(self, name: str, description: str, *, inop: bool) -> SMMAssetStatusValue:
+        """
+        Add an asset status value
+        """
+        result = self.post(
+            "/admin/assets/assetstatusvalue/add/",
+            {"name": name, "description": description, "inop": inop, "_continue": "Save+and+continue+editing"},
+        )
+        url_parts = result.url.split("/")
+        return SMMAssetStatusValue(url_parts[-3], name, description, inop=inop)
+
     def get_asset_status_values(self) -> list[SMMAssetStatusValue]:
         """
         Get all the asset status values
@@ -109,6 +121,51 @@ class SMMConnection:
             )
             for asset_status_value in asset_status_values_json
         ]
+
+    def get_or_create_asset_status_value(self, name: str, description: str, *, inop: bool) -> SMMAssetStatusValue:
+        """
+        Get the asset status value that matches this name
+        Otherwise create it
+        """
+        status_values = self.get_asset_status_values()
+        for sv in status_values:
+            if sv.name == name:
+                return sv
+        return self.create_asset_status_value(name, description, inop=inop)
+
+    def create_mission_asset_status_value(self, name: str, description: str) -> SMMMissionAssetStatusValue:
+        """
+        Add a mission asset status value
+        """
+        result = self.post(
+            "/admin/mission/missionassetstatusvalue/add/",
+            {"name": name, "description": description, "_continue": "Save+and+continue+editing"},
+        )
+        url_parts = result.url.split("/")
+        return SMMMissionAssetStatusValue(url_parts[-3], name, description)
+
+    def get_mission_asset_status_values(self) -> list[SMMMissionAssetStatusValue]:
+        """
+        Get all the mission asset status values
+        """
+        mission_asset_status_values_json = self.get_json("/mission/asset/status/values/")["values"]
+        return [
+            SMMMissionAssetStatusValue(
+                asset_status_value["id"], asset_status_value["name"], asset_status_value["description"]
+            )
+            for asset_status_value in mission_asset_status_values_json
+        ]
+
+    def get_or_create_mission_asset_status_value(self, name: str, description: str) -> SMMMissionAssetStatusValue:
+        """
+        Get the mission asset status value that matches this name
+        Otherwise create it
+        """
+        status_values = self.get_mission_asset_status_values()
+        for sv in status_values:
+            if sv.name == name:
+                return sv
+        return self.create_mission_asset_status_value(name, description)
 
     def get_organizations(self, *, all_orgs=False) -> list[SMMOrganization]:
         """
