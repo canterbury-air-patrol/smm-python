@@ -12,11 +12,11 @@ from typing import TYPE_CHECKING
 import requests
 
 from smm_client.geometry import SMMLine, SMMPoi, SMMPolygon
+from smm_client.organizations import SMMOrganization
 
 if TYPE_CHECKING:
     from smm_client.assets import SMMAsset, SMMUser
     from smm_client.connection import SMMConnection
-    from smm_client.organizations import SMMOrganization
     from smm_client.types import SMMPoint
 
 
@@ -98,6 +98,12 @@ class SMMMission:
         """
         return self.connection.post(self.__url_component(page), data)
 
+    def get_json(self, page: str):
+        """
+        Get data from a specific url in this mission
+        """
+        return self.connection.get_json(self.__url_component(page))
+
     def add_member(self, user: SMMUser) -> SMMMissionMember:
         """
         Add a member to this mission
@@ -109,8 +115,18 @@ class SMMMission:
         """
         Add an organization to this mission
         """
-        self.post("organizations/add/", data={"organization": organization.id})
+        self.post("organizations/", data={"organization": organization.id})
         return SMMMissionOrganization(self, organization)
+
+    def get_organizations(self) -> list[SMMMissionOrganization]:
+        """
+        Get all the current organizations in this mission
+        """
+        organizations_json = self.get_json("organizations/")
+        return [
+            SMMMissionOrganization(self, SMMOrganization(self.connection, organization["id"], organization["name"]))
+            for organization in organizations_json["organizations"]
+        ]
 
     def add_asset(self, asset: SMMAsset) -> None:
         """
