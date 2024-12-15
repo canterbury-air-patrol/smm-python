@@ -166,6 +166,16 @@ class SMMMission:
             data["longitude"] = point.longitude
         self.post("assets/command/set/", data)
 
+    def set_asset_status(self, asset: SMMAsset, status: SMMMissionAssetStatusValue, notes: str) -> None:
+        """
+        Set the status of a specific asset in the mission
+        """
+        data = {
+            "value_id": status.id,
+            "notes": notes,
+        }
+        self.post(f"assets/{asset.id}/status/", data)
+
     def close(self) -> None:
         """
         Close this mission
