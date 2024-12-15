@@ -20,6 +20,18 @@ if TYPE_CHECKING:
     from smm_client.types import SMMPoint
 
 
+class SMMMissionAssetStatusValue:
+    # pylint: disable=R0903
+    """
+    Search Management Map - Mission Asset Status Value
+    """
+
+    def __init__(self, value_id: int, name: str, description: str) -> None:
+        self.id = value_id
+        self.name = name
+        self.description = description
+
+
 class SMMMissionOrganization:
     """
     Search Management Map - Organization membership of a Mission
