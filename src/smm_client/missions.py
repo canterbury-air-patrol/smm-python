@@ -20,6 +20,18 @@ if TYPE_CHECKING:
     from smm_client.types import SMMPoint
 
 
+class SMMMissionAssetStatusValue:
+    # pylint: disable=R0903
+    """
+    Search Management Map - Mission Asset Status Value
+    """
+
+    def __init__(self, value_id: int, name: str, description: str) -> None:
+        self.id = value_id
+        self.name = name
+        self.description = description
+
+
 class SMMMissionOrganization:
     """
     Search Management Map - Organization membership of a Mission
@@ -153,6 +165,16 @@ class SMMMission:
             data["latitude"] = point.latitude
             data["longitude"] = point.longitude
         self.post("assets/command/set/", data)
+
+    def set_asset_status(self, asset: SMMAsset, status: SMMMissionAssetStatusValue, notes: str) -> None:
+        """
+        Set the status of a specific asset in the mission
+        """
+        data = {
+            "value_id": status.id,
+            "notes": notes,
+        }
+        self.post(f"assets/{asset.id}/status/", data)
 
     def close(self) -> None:
         """
