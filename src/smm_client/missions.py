@@ -136,7 +136,12 @@ class SMMMission:
         """
         organizations_json = self.get_json("organizations/")
         return [
-            SMMMissionOrganization(self, SMMOrganization(self.connection, organization["id"], organization["name"]))
+            SMMMissionOrganization(
+                self,
+                SMMOrganization(
+                    self.connection, organization["organization"]["id"], organization["organization"]["name"]
+                ),
+            )
             for organization in organizations_json["organizations"]
         ]
 
