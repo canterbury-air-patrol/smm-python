@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from json import JSONDecodeError
 
+from smm_client.search import SMMSearch
 from smm_client.types import SMMPoint
 
 
@@ -116,6 +117,17 @@ class SMMAsset:
         )
         try:
             return SMMAssetCommand(self, data.json())
+        except JSONDecodeError:
+            return None
+
+    def get_next_search(self, lat: float, lon: float) -> SMMSearch | None:
+        """
+        Get the nearest search for this asset
+        Note: queued searches will be run in order before unqueued searches are looked for by distance
+        """
+        data = self.connection.get("/search/find/closest/", data={"asset_id": self.id, "lat": lat, "lon": lon})
+        try:
+            return SMMSearch(self, data.json()["object_url"].split("/")[-1])
         except JSONDecodeError:
             return None
 
