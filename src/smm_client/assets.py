@@ -7,6 +7,8 @@ Search Management Map - Assets
 
 from __future__ import annotations
 
+from json import JSONDecodeError
+
 from smm_client.types import SMMPoint
 
 
@@ -99,6 +101,23 @@ class SMMAsset:
         if data is not None:
             return SMMAssetCommand(self, data)
         return None
+
+    def set_position(
+        self, lat: float, lon: float, fix: int, alt: int | None, heading: int | None
+    ) -> SMMAssetCommand | None:
+        # pylint: disable=R0913,R0917
+        """
+        Set/Update the position of this asset
+        Will return the current asset command, if any
+        """
+        data = self.connection.post(
+            f"/data/assets/{self.id}/position/add/",
+            data={"lat": lat, "lon": lon, "fix": fix, "alt": alt, "heading": heading},
+        )
+        try:
+            return SMMAssetCommand(self, data.json())
+        except JSONDecodeError:
+            return None
 
     def __str__(self) -> str:
         return f"{self.name} ({self.id})"
