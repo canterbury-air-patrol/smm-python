@@ -45,7 +45,7 @@ class SMMSearch:
         """
         Get the data for this search
         """
-        res = self.connection.get(self.__url_component(None))
+        res = self.connection.get_json(self.__url_component(None))
         try:
             return SMMSearchData(res.json()["features"][0])
         except JSONDecodeError:
