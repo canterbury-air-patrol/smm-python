@@ -125,7 +125,9 @@ class SMMAsset:
         Get the nearest search for this asset
         Note: queued searches will be run in order before unqueued searches are looked for by distance
         """
-        data = self.connection.post("/search/find/closest/", data={"asset_id": self.id, "lat": lat, "lon": lon})
+        data = self.connection.post(
+            "/search/find/closest/", data={"asset_id": self.id, "latitude": lat, "longitude": lon}
+        )
         try:
             return SMMSearch(self, data.json()["object_url"].split("/")[-1])
         except JSONDecodeError:
