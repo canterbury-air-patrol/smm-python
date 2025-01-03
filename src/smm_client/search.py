@@ -47,8 +47,8 @@ class SMMSearch:
         """
         res = self.connection.get_json(self.__url_component(None))
         try:
-            return SMMSearchData(res.json()["features"][0])
-        except JSONDecodeError:
+            return SMMSearchData(res["features"][0])
+        except KeyError:
             return None
 
     def queue(self, asset: SMMAsset | None) -> bool:
