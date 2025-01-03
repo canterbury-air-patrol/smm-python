@@ -14,6 +14,7 @@ from smm_client.types import SMMPoint
 
 if TYPE_CHECKING:
     from smm_client.assets import SMMAsset
+    from smm_client.connection import SMMConnection
 
 
 class SMMSearchData:
@@ -33,7 +34,7 @@ class SMMSearch:
     Base class for searches
     """
 
-    def __init__(self, connection, search_id):
+    def __init__(self, connection: SMMConnection, search_id: int):
         self.connection = connection
         self.id = search_id
 

@@ -129,7 +129,7 @@ class SMMAsset:
             "/search/find/closest/", data={"asset_id": self.id, "latitude": lat, "longitude": lon}
         )
         try:
-            return SMMSearch(self, data.json()["object_url"].split("/")[-1])
+            return SMMSearch(self.connection, data.json()["object_url"].split("/")[-1])
         except JSONDecodeError:
             return None
 
