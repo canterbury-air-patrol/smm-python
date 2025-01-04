@@ -242,3 +242,14 @@ class SMMMission:
             json_obj = results.json()
             return SMMPolygon(self, json_obj["features"][0]["properties"]["pk"])
         return None
+
+    @classmethod
+    def get_mission_for_asset(cls, asset: SMMAsset) -> SMMMission | None:
+        """
+        Get the current mission for the asset
+        """
+        data = asset.get_asset_data()
+        try:
+            return SMMMission(asset.connection, data["mission_id"], data["mission_name"])
+        except KeyError:
+            return None
