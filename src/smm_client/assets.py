@@ -133,6 +133,12 @@ class SMMAsset:
         except JSONDecodeError:
             return None
 
+    def get_asset_data(self):
+        """
+        Get the current data for this asset
+        """
+        return self.connection.get_json(self.__url_component(""))
+
     def __str__(self) -> str:
         return f"{self.name} ({self.id})"
 
