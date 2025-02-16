@@ -78,9 +78,7 @@ class SMMAsset:
         Get the current status of this asset
         """
         data = self.connection.get_json(self.__url_component("status/"))
-        if data is not None:
-            return SMMAssetStatus(self, data)
-        return None
+        return SMMAssetStatus(self, data) if data else None
 
     def set_status(self, status: str, notes: str) -> None:
         """
@@ -99,9 +97,7 @@ class SMMAsset:
         Get the command that currently applies to this asset
         """
         data = self.connection.get_json(self.__url_component("command/"))
-        if data is not None:
-            return SMMAssetCommand(self, data)
-        return None
+        return SMMAssetCommand(self, data) if data else None
 
     def set_position(
         self, lat: float, lon: float, fix: int, alt: int | None, heading: int | None
