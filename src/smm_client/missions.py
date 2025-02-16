@@ -88,6 +88,40 @@ class SMMMissionMember:
         return response.status_code == requests.codes["ok"]
 
 
+class SMMMissionExternalReference:
+    """
+    Search Management Map - External Reference for Mission
+    """
+
+    def __init__(self, mission: SMMMission, data):
+        self.mission = mission
+        self.id = data["id"]
+        self.name = data["name"]
+        self.code = data["code"]
+        self.url = data["url"]
+        self.notes = data["notes"]
+
+    def delete(self):
+        """
+        Remove this reference
+        """
+        self.mission.delete(f"externalreferences/{self.id}/")
+
+    def update(self, name, code, url, notes):
+        """
+        Update this reference
+        """
+        self.mission.post(
+            f"externalreferences/{self.id}/",
+            {
+                "name": name,
+                "code": code,
+                "url": url,
+                "notes": notes,
+            },
+        )
+
+
 class SMMMission:
     """
     Search Management Map - Mission
@@ -115,6 +149,12 @@ class SMMMission:
         Get data from a specific url in this mission
         """
         return self.connection.get_json(self.__url_component(page))
+
+    def delete(self, page: str):
+        """
+        Delete data on this mission
+        """
+        self.connection.delete(self.__url_component(page))
 
     def add_member(self, user: SMMUser) -> SMMMissionMember:
         """
@@ -253,3 +293,30 @@ class SMMMission:
             return SMMMission(asset.connection, data["mission_id"], data["mission_name"])
         except KeyError:
             return None
+
+    def get_external_references(self) -> list[SMMMissionExternalReference]:
+        """
+        Get all external references for this mission
+        """
+        extref_json = self.get_json("externalreferences/")
+        return [
+            SMMMissionExternalReference(
+                self,
+                extref,
+            )
+            for extref in extref_json["external_references"]
+        ]
+
+    def add_external_reference(self, name: str, code: str | None, url: str | None, notes: str | None):
+        """
+        Add an external reference to this mission
+        """
+        self.post(
+            "externalreferences/",
+            {
+                "name": name,
+                "code": code,
+                "url": url,
+                "notes": notes,
+            },
+        )
