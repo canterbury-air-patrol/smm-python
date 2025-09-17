@@ -25,6 +25,9 @@ class SMMAssetStatusValue:
         self.inop = inop
         self.description = description
 
+    def __str__(self) -> str:
+        return f"{self.name} ({self.id}) - {'Inop' if self.inop else 'Op'}: {self.description}"
+
 
 class SMMAssetStatus:
     # pylint: disable=R0903
@@ -39,6 +42,9 @@ class SMMAssetStatus:
         self.since = data["since"]
         self.notes = data["notes"]
 
+    def __str__(self) -> str:
+        return f"Status of {self.asset.name} is '{self.status}' since {self.since}: {self.notes}"
+
 
 class SMMAssetCommand:
     # pylint: disable=R0903, R0902
@@ -48,6 +54,7 @@ class SMMAssetCommand:
 
     def __init__(self, asset: SMMAsset, data: dict) -> None:
         self.asset = asset
+        self.id = data["id"]
         self.issued = data["issued"]
         self.issued_by = data["issued_by"]
         self.command = data["action_txt"]
@@ -57,6 +64,9 @@ class SMMAssetCommand:
         self.responded_by = data["response"]["by"]
         self.response_type = data["response"]["type"]
         self.response_message = data["response"]["message"]
+
+    def __str__(self) -> str:
+        return f"Command '{self.command}' issued to {self.asset.name} at {self.issued}: {self.reason}"
 
 
 class SMMAsset:
@@ -97,6 +107,7 @@ class SMMAsset:
         Get the command that currently applies to this asset
         """
         data = self.connection.get_json(self.__url_component("command/"))
+        data = data["command"] if data and "command" in data and "issued" in data["command"] else None
         return SMMAssetCommand(self, data) if data else None
 
     def set_position(
