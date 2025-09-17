@@ -15,8 +15,8 @@ from smm_client.geometry import SMMLine, SMMPoi, SMMPolygon
 from smm_client.organizations import SMMOrganization
 
 if TYPE_CHECKING:
-    from smm_client.assets import SMMAsset, SMMUser
-    from smm_client.connection import SMMConnection
+    from smm_client.assets import SMMAsset
+    from smm_client.connection import SMMConnection, SMMUser
     from smm_client.types import SMMPoint
 
 
