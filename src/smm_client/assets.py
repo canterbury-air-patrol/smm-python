@@ -10,7 +10,7 @@ from __future__ import annotations
 from json import JSONDecodeError
 
 from smm_client.search import SMMSearch
-from smm_client.types import SMMAssetCommandMalformedError, SMMAssetStatusMalformedError, SMMPoint
+from smm_client.types import SMMMalformedDataError, SMMPoint
 
 
 class SMMAssetStatusValue:
@@ -43,7 +43,7 @@ class SMMAssetStatus:
             self.since = data["since"]
             self.notes = data["notes"]
         except KeyError as exc:
-            raise SMMAssetStatusMalformedError(exc) from exc
+            raise SMMMalformedDataError("asset status", exc) from exc
 
     def __str__(self) -> str:
         return f"Status of {self.asset.name} is '{self.status}' since {self.since}: {self.notes}"
@@ -69,7 +69,7 @@ class SMMAssetCommand:
             self.response_type = data["response"]["type"]
             self.response_message = data["response"]["message"]
         except KeyError as exc:
-            raise SMMAssetCommandMalformedError(exc) from exc
+            raise SMMMalformedDataError("asset command", exc) from exc
 
     def __str__(self) -> str:
         return f"Command '{self.command}' issued to {self.asset.name} at {self.issued}: {self.reason}"

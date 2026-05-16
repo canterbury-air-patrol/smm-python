@@ -13,31 +13,27 @@ from smm_client.assets import SMMAsset, SMMAssetStatusValue, SMMAssetType
 from smm_client.missions import SMMMission, SMMMissionAssetStatusValue
 from smm_client.organizations import SMMOrganization
 from smm_client.types import (
-    SMMAssetRedirectError,
-    SMMAssetsKeyError,
-    SMMAssetStatusRedirectError,
-    SMMAssetStatusValuesKeyError,
-    SMMAssetTypeRedirectError,
-    SMMAssetTypesKeyError,
     SMMCSRFTokenError,
     SMMDeleteCSRFError,
     SMMDeleteHTTPError,
     SMMGetHTTPError,
     SMMJSONDecodeError,
-    SMMLoginHTTPError,
     SMMLoginNoSessionError,
-    SMMMissionAssetStatusRedirectError,
-    SMMMissionAssetStatusValuesKeyError,
-    SMMMissionRedirectError,
-    SMMMissionsKeyError,
-    SMMOrgParseError,
-    SMMOrgURLKeyError,
+    SMMMissingKeyError,
+    SMMParseError,
     SMMPostCSRFError,
     SMMPostHTTPError,
-    SMMUserRedirectError,
+    SMMUnexpectedRedirectError,
 )
 
 _MIN_REDIRECT_URL_PARTS = 3
+
+
+def _parse_redirect_id(resource: str, url: str) -> str:
+    url_parts = url.split("/")
+    if len(url_parts) < _MIN_REDIRECT_URL_PARTS:
+        raise SMMUnexpectedRedirectError(resource, url)
+    return url_parts[-_MIN_REDIRECT_URL_PARTS]
 
 
 # pylint: disable = R0903
@@ -105,7 +101,7 @@ class SMMConnection:
             return response.json()
         except requests.HTTPError as exc:
             raise SMMGetHTTPError(path, exc) from exc
-        except (ValueError, requests.exceptions.JSONDecodeError) as exc:
+        except ValueError as exc:
             raise SMMJSONDecodeError(path, exc) from exc
 
     def post(self, path: str, data=None) -> requests.Response:
@@ -165,13 +161,10 @@ class SMMConnection:
         if "csrftoken" not in self.session.cookies:
             raise SMMCSRFTokenError
 
-        response = self.post("/accounts/login/", data={"username": self.username, "password": self.password})
-        if response.status_code != requests.codes["ok"]:
-            raise SMMLoginHTTPError(response.status_code)
+        self.post("/accounts/login/", data={"username": self.username, "password": self.password})
 
-        # Check if we are still authenticated by trying to access a protected resource or checking cookies
-        # For now, we'll assume a 200 OK from the login POST means success,
-        # but some systems might return 200 even on failure (displaying a form error).
+        # Any non-2xx response is already raised by post() as SMMPostHTTPError.
+        # We verify a session cookie was established to confirm authentication succeeded.
         if "sessionid" not in self.session.cookies:
             raise SMMLoginNoSessionError
 
@@ -184,7 +177,7 @@ class SMMConnection:
         """
         data = self.get_json("/assets/")
         if "assets" not in data:
-            raise SMMAssetsKeyError
+            raise SMMMissingKeyError("/assets/", "assets")
         assets_json = data["assets"]
         return [SMMAsset(self, asset_json["id"], asset_json["name"]) for asset_json in assets_json]
 
@@ -200,7 +193,7 @@ class SMMConnection:
         """
         data = self.get_json(f"/mission/list/?only={only}")
         if "missions" not in data:
-            raise SMMMissionsKeyError
+            raise SMMMissingKeyError(f"/mission/list/?only={only}", "missions")
         missions_json = data["missions"]
         return [SMMMission(self, mission_json["id"], mission_json["name"]) for mission_json in missions_json]
 
@@ -210,7 +203,7 @@ class SMMConnection:
         """
         data = self.get_json("/assets/assettypes/")
         if "asset_types" not in data:
-            raise SMMAssetTypesKeyError
+            raise SMMMissingKeyError("/assets/assettypes/", "asset_types")
         asset_types_json = data["asset_types"]
         return [
             SMMAssetType(self, asset_type_json["id"], asset_type_json["name"]) for asset_type_json in asset_types_json
@@ -224,10 +217,7 @@ class SMMConnection:
             "/admin/assets/assetstatusvalue/add/",
             {"name": name, "description": description, "inop": inop, "_continue": "Save+and+continue+editing"},
         )
-        url_parts = result.url.split("/")
-        if len(url_parts) < _MIN_REDIRECT_URL_PARTS:
-            raise SMMAssetStatusRedirectError(result.url)
-        return SMMAssetStatusValue(url_parts[-3], name, description, inop=inop)
+        return SMMAssetStatusValue(_parse_redirect_id("asset status value", result.url), name, description, inop=inop)
 
     def get_asset_status_values(self) -> list[SMMAssetStatusValue]:
         """
@@ -235,7 +225,7 @@ class SMMConnection:
         """
         data = self.get_json("/assets/status/values/")
         if "values" not in data:
-            raise SMMAssetStatusValuesKeyError
+            raise SMMMissingKeyError("/assets/status/values/", "values")
         asset_status_values_json = data["values"]
         return [
             SMMAssetStatusValue(
@@ -266,10 +256,7 @@ class SMMConnection:
             "/admin/mission/missionassetstatusvalue/add/",
             {"name": name, "description": description, "_continue": "Save+and+continue+editing"},
         )
-        url_parts = result.url.split("/")
-        if len(url_parts) < _MIN_REDIRECT_URL_PARTS:
-            raise SMMMissionAssetStatusRedirectError(result.url)
-        return SMMMissionAssetStatusValue(url_parts[-3], name, description)
+        return SMMMissionAssetStatusValue(_parse_redirect_id("mission asset status value", result.url), name, description)
 
     def get_mission_asset_status_values(self) -> list[SMMMissionAssetStatusValue]:
         """
@@ -277,7 +264,7 @@ class SMMConnection:
         """
         data = self.get_json("/mission/asset/status/values/")
         if "values" not in data:
-            raise SMMMissionAssetStatusValuesKeyError
+            raise SMMMissingKeyError("/mission/asset/status/values/", "values")
         mission_asset_status_values_json = data["values"]
         return [
             SMMMissionAssetStatusValue(
@@ -304,7 +291,7 @@ class SMMConnection:
         url = "/organization/" if all_orgs else "/organization/?only=mine"
         data = self.get_json(url)
         if "organizations" not in data:
-            raise SMMOrgURLKeyError(url)
+            raise SMMMissingKeyError(url, "organizations")
         organizations_json = data["organizations"]
         return [
             SMMOrganization(self, organization_json["id"], organization_json["name"])
@@ -319,10 +306,7 @@ class SMMConnection:
             "/admin/auth/user/add/",
             {"username": username, "password1": password, "password2": password, "_save": "Save"},
         )
-        url_parts = result.url.split("/")
-        if len(url_parts) < _MIN_REDIRECT_URL_PARTS:
-            raise SMMUserRedirectError(result.url)
-        return SMMUser(url_parts[-3], username)
+        return SMMUser(_parse_redirect_id("user", result.url), username)
 
     def create_asset_type(self, asset_type: str, description: str) -> SMMAssetType:
         """
@@ -332,10 +316,7 @@ class SMMConnection:
             "/admin/assets/assettype/add/",
             {"name": asset_type, "description": description, "_continue": "Save+and+continue+editing"},
         )
-        url_parts = result.url.split("/")
-        if len(url_parts) < _MIN_REDIRECT_URL_PARTS:
-            raise SMMAssetTypeRedirectError(result.url)
-        return SMMAssetType(self, url_parts[-3], asset_type)
+        return SMMAssetType(self, _parse_redirect_id("asset type", result.url), asset_type)
 
     def get_or_create_asset_type(self, asset_type: str, description: str) -> SMMAssetType:
         """
@@ -356,10 +337,7 @@ class SMMConnection:
             "/admin/assets/asset/add/",
             {"name": asset, "owner": user.id, "asset_type": asset_type.id, "_continue": "Save+and+continue+editing"},
         )
-        url_parts = result.url.split("/")
-        if len(url_parts) < _MIN_REDIRECT_URL_PARTS:
-            raise SMMAssetRedirectError(result.url)
-        return SMMAsset(self, url_parts[-3], asset)
+        return SMMAsset(self, _parse_redirect_id("asset", result.url), asset)
 
     def create_mission(self, name: str, description: str) -> SMMMission | None:
         """
@@ -367,10 +345,7 @@ class SMMConnection:
         """
         res = self.post("/mission/new/", {"mission_name": name, "mission_description": description})
         if res.status_code == requests.codes["ok"]:
-            url_parts = res.url.split("/")
-            if len(url_parts) < _MIN_REDIRECT_URL_PARTS:
-                raise SMMMissionRedirectError(res.url)
-            return SMMMission(self, url_parts[-3], name)
+            return SMMMission(self, _parse_redirect_id("mission", res.url), name)
         return None
 
     def create_organization(self, name: str) -> SMMOrganization:
@@ -381,8 +356,8 @@ class SMMConnection:
         try:
             org_json = res.json()
             return SMMOrganization(self, org_json["id"], org_json["name"])
-        except (ValueError, requests.exceptions.JSONDecodeError, KeyError) as exc:
-            raise SMMOrgParseError(exc) from exc
+        except (ValueError, KeyError) as exc:
+            raise SMMParseError("organization", exc) from exc
 
     def get_or_create_organization(self, name: str) -> SMMOrganization:
         """

@@ -50,15 +50,6 @@ class SMMCSRFTokenError(SMMAuthenticationError):
         super().__init__("Failed to obtain CSRF token from server")
 
 
-class SMMLoginHTTPError(SMMAuthenticationError):
-    """
-    Exception raised when login fails with a non-OK HTTP status code.
-    """
-
-    def __init__(self, status_code: int) -> None:
-        super().__init__(f"Login failed with status code: {status_code}")
-
-
 class SMMLoginNoSessionError(SMMAuthenticationError):
     """
     Exception raised when login succeeds HTTP-wise but no session ID is received.
@@ -128,283 +119,46 @@ class SMMDeleteHTTPError(SMMRequestError):
         super().__init__(f"HTTP error during DELETE {path}: {exc}")
 
 
-class SMMAssetsKeyError(SMMRequestError):
+class SMMMissingKeyError(SMMRequestError):
     """
-    Exception raised when the assets response is missing the 'assets' key.
-    """
-
-    def __init__(self) -> None:
-        super().__init__("Unexpected response format from /assets/: missing 'assets' key")
-
-
-class SMMMissionsKeyError(SMMRequestError):
-    """
-    Exception raised when the missions response is missing the 'missions' key.
+    Exception raised when an expected key is missing from a JSON response.
     """
 
-    def __init__(self) -> None:
-        super().__init__("Unexpected response format from /mission/list/: missing 'missions' key")
+    def __init__(self, path: str, key: str) -> None:
+        super().__init__(f"Unexpected response format from {path}: missing {key!r} key")
+        self.path = path
+        self.key = key
 
 
-class SMMAssetTypesKeyError(SMMRequestError):
+class SMMUnexpectedRedirectError(SMMRequestError):
     """
-    Exception raised when the asset types response is missing the 'asset_types' key.
-    """
-
-    def __init__(self) -> None:
-        super().__init__("Unexpected response format from /assets/assettypes/: missing 'asset_types' key")
-
-
-class SMMAssetStatusValuesKeyError(SMMRequestError):
-    """
-    Exception raised when the asset status values response is missing the 'values' key.
+    Exception raised when a resource creation returns an unexpected redirect URL.
     """
 
-    def __init__(self) -> None:
-        super().__init__("Unexpected response format from /assets/status/values/: missing 'values' key")
+    def __init__(self, resource: str, url: str) -> None:
+        super().__init__(f"Unexpected redirect URL after creating {resource}: {url}")
+        self.resource = resource
+        self.url = url
 
 
-class SMMMissionAssetStatusValuesKeyError(SMMRequestError):
+class SMMParseError(SMMRequestError):
     """
-    Exception raised when the mission asset status values response is missing the 'values' key.
-    """
-
-    def __init__(self) -> None:
-        super().__init__("Unexpected response format from /mission/asset/status/values/: missing 'values' key")
-
-
-class SMMOrgURLKeyError(SMMRequestError):
-    """
-    Exception raised when an organization list response is missing the 'organizations' key.
+    Exception raised when a server response cannot be parsed.
     """
 
-    def __init__(self, url: str) -> None:
-        super().__init__(f"Unexpected response format from {url}: missing 'organizations' key")
+    def __init__(self, resource: str, exc: Exception) -> None:
+        super().__init__(f"Failed to parse {resource} creation response: {exc}")
+        self.resource = resource
 
 
-class SMMMissionOrgsKeyError(SMMRequestError):
+class SMMMalformedDataError(SMMRequestError):
     """
-    Exception raised when a mission's organization list response is missing the 'organizations' key.
-    """
-
-    def __init__(self) -> None:
-        super().__init__("Unexpected response format from organizations/: missing 'organizations' key")
-
-
-class SMMMissionAssetsKeyError(SMMRequestError):
-    """
-    Exception raised when a mission's asset list response is missing the 'assets' key.
+    Exception raised when data received from the server is malformed.
     """
 
-    def __init__(self) -> None:
-        super().__init__("Unexpected response format from assets/: missing 'assets' key")
-
-
-class SMMOrgMembersKeyError(SMMRequestError):
-    """
-    Exception raised when an organization members response is missing the 'members' key.
-    """
-
-    def __init__(self) -> None:
-        super().__init__("Unexpected response format from organization/: missing 'members' key")
-
-
-class SMMOrgAssetsKeyError(SMMRequestError):
-    """
-    Exception raised when an organization assets response is missing the 'assets' key.
-    """
-
-    def __init__(self) -> None:
-        super().__init__("Unexpected response format from organization assets/: missing 'assets' key")
-
-
-class SMMAssetStatusRedirectError(SMMRequestError):
-    """
-    Exception raised when creating an asset status value returns an unexpected redirect URL.
-    """
-
-    def __init__(self, url: str) -> None:
-        super().__init__(f"Unexpected redirect URL after creating asset status value: {url}")
-
-
-class SMMMissionAssetStatusRedirectError(SMMRequestError):
-    """
-    Exception raised when creating a mission asset status value returns an unexpected redirect URL.
-    """
-
-    def __init__(self, url: str) -> None:
-        super().__init__(f"Unexpected redirect URL after creating mission asset status value: {url}")
-
-
-class SMMUserRedirectError(SMMRequestError):
-    """
-    Exception raised when creating a user returns an unexpected redirect URL.
-    """
-
-    def __init__(self, url: str) -> None:
-        super().__init__(f"Unexpected redirect URL after creating user: {url}")
-
-
-class SMMAssetTypeRedirectError(SMMRequestError):
-    """
-    Exception raised when creating an asset type returns an unexpected redirect URL.
-    """
-
-    def __init__(self, url: str) -> None:
-        super().__init__(f"Unexpected redirect URL after creating asset type: {url}")
-
-
-class SMMAssetRedirectError(SMMRequestError):
-    """
-    Exception raised when creating an asset returns an unexpected redirect URL.
-    """
-
-    def __init__(self, url: str) -> None:
-        super().__init__(f"Unexpected redirect URL after creating asset: {url}")
-
-
-class SMMMissionRedirectError(SMMRequestError):
-    """
-    Exception raised when creating a mission returns an unexpected redirect URL.
-    """
-
-    def __init__(self, url: str) -> None:
-        super().__init__(f"Unexpected redirect URL after creating mission: {url}")
-
-
-class SMMOrgParseError(SMMRequestError):
-    """
-    Exception raised when an organization creation response cannot be parsed.
-    """
-
-    def __init__(self, exc: Exception) -> None:
-        super().__init__(f"Failed to parse organization creation response: {exc}")
-
-
-class SMMAssetStatusMalformedError(SMMRequestError):
-    """
-    Exception raised when asset status data is malformed.
-    """
-
-    def __init__(self, exc: Exception) -> None:
-        super().__init__(f"Malformed asset status data: missing key {exc}")
-
-
-class SMMAssetCommandMalformedError(SMMRequestError):
-    """
-    Exception raised when asset command data is malformed.
-    """
-
-    def __init__(self, exc: Exception) -> None:
-        super().__init__(f"Malformed asset command data: missing key {exc}")
-
-
-class SMMOrgMemberMalformedError(SMMRequestError):
-    """
-    Exception raised when organization member data is malformed.
-    """
-
-    def __init__(self, exc: Exception) -> None:
-        super().__init__(f"Malformed member data: missing key {exc}")
-
-
-class SMMOrgAssetMalformedError(SMMRequestError):
-    """
-    Exception raised when organization asset data is malformed.
-    """
-
-    def __init__(self, exc: Exception) -> None:
-        super().__init__(f"Malformed organization asset data: missing key {exc}")
-
-
-class SMMSearchMalformedError(SMMRequestError):
-    """
-    Exception raised when search data is malformed.
-    """
-
-    def __init__(self, exc: Exception) -> None:
-        super().__init__(f"Malformed search data: {exc}")
-
-
-class SMMWaypointParseError(SMMRequestError):
-    """
-    Exception raised when a waypoint creation response cannot be parsed.
-    """
-
-    def __init__(self, exc: Exception) -> None:
-        super().__init__(f"Failed to parse waypoint creation response: {exc}")
-
-
-class SMMLineParseError(SMMRequestError):
-    """
-    Exception raised when a line creation response cannot be parsed.
-    """
-
-    def __init__(self, exc: Exception) -> None:
-        super().__init__(f"Failed to parse line creation response: {exc}")
-
-
-class SMMPolygonParseError(SMMRequestError):
-    """
-    Exception raised when a polygon creation response cannot be parsed.
-    """
-
-    def __init__(self, exc: Exception) -> None:
-        super().__init__(f"Failed to parse polygon creation response: {exc}")
-
-
-class SMMSectorSearchParseError(SMMRequestError):
-    """
-    Exception raised when a sector search creation response cannot be parsed.
-    """
-
-    def __init__(self, exc: Exception) -> None:
-        super().__init__(f"Failed to parse sector search creation response: {exc}")
-
-
-class SMMExpandingBoxSearchParseError(SMMRequestError):
-    """
-    Exception raised when an expanding box search creation response cannot be parsed.
-    """
-
-    def __init__(self, exc: Exception) -> None:
-        super().__init__(f"Failed to parse expanding box search creation response: {exc}")
-
-
-class SMMShorelineSearchParseError(SMMRequestError):
-    """
-    Exception raised when a shoreline search creation response cannot be parsed.
-    """
-
-    def __init__(self, exc: Exception) -> None:
-        super().__init__(f"Failed to parse shoreline search creation response: {exc}")
-
-
-class SMMTracklineSearchParseError(SMMRequestError):
-    """
-    Exception raised when a trackline search creation response cannot be parsed.
-    """
-
-    def __init__(self, exc: Exception) -> None:
-        super().__init__(f"Failed to parse trackline search creation response: {exc}")
-
-
-class SMMCreepingLineSearchParseError(SMMRequestError):
-    """
-    Exception raised when a creeping line search creation response cannot be parsed.
-    """
-
-    def __init__(self, exc: Exception) -> None:
-        super().__init__(f"Failed to parse creeping line search creation response: {exc}")
-
-
-class SMMPolygonCreepingLineSearchParseError(SMMRequestError):
-    """
-    Exception raised when a polygon creeping line search creation response cannot be parsed.
-    """
-
-    def __init__(self, exc: Exception) -> None:
-        super().__init__(f"Failed to parse polygon creeping line search creation response: {exc}")
+    def __init__(self, resource: str, exc: Exception) -> None:
+        super().__init__(f"Malformed {resource} data: {exc}")
+        self.resource = resource
 
 
 class SMMPoint:
