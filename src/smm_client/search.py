@@ -10,7 +10,7 @@ from __future__ import annotations
 from json import JSONDecodeError
 from typing import TYPE_CHECKING
 
-from smm_client.types import SMMPoint
+from smm_client.types import SMMMalformedDataError, SMMPoint
 
 if TYPE_CHECKING:
     from smm_client.assets import SMMAsset
@@ -24,9 +24,12 @@ class SMMSearchData:
     """
 
     def __init__(self, geojson):
-        self.id = geojson["id"]
-        self.properties = geojson["properties"]
-        self.coords = [SMMPoint(p[1], p[0]) for p in geojson["geometry"]["coordinates"]]
+        try:
+            self.id = geojson["id"]
+            self.properties = geojson["properties"]
+            self.coords = [SMMPoint(p[1], p[0]) for p in geojson["geometry"]["coordinates"]]
+        except (KeyError, IndexError, TypeError) as exc:
+            raise SMMMalformedDataError("search", exc) from exc
 
 
 class SMMSearch:
