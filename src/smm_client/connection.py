@@ -28,10 +28,18 @@ class SMMUser:
 class SMMConnection:
     # pylint: disable=R0904
     """
-    Create a connection to the Search Management Map Server
+    Manages the connection and authentication to a Search Management Map (SMM) server.
     """
 
     def __init__(self, url: str, username: str, password: str) -> None:
+        """
+        Initializes the connection and logs in to the SMM server.
+
+        Args:
+            url (str): The base URL of the SMM server.
+            username (str): The username for authentication.
+            password (str): The password for authentication.
+        """
         self.base_url = url
         self.username = username
         self.password = password
@@ -40,49 +48,83 @@ class SMMConnection:
 
     def get(self, path=None) -> requests.Response:
         """
-        GET path on this connection
+        Performs a GET request to the specified path.
+
+        Args:
+            path (str, optional): The path to request, relative to the base URL.
+
+        Returns:
+            requests.Response: The response from the server.
         """
         url = f"{self.base_url}/{path}" if path else self.base_url
         return self.session.get(url)
 
     def get_json(self, path: str):
         """
-        GET json from path on this connection
+        Performs a GET request and returns the parsed JSON response.
+
+        Args:
+            path (str): The path to request, relative to the base URL.
+
+        Returns:
+            dict: The parsed JSON response.
         """
         url = f"{self.base_url}/{path}"
         return self.session.get(url, headers={"Accept": "application/json"}).json()
 
     def post(self, path: str, data=None) -> requests.Response:
         """
-        POST data to path on this connection
+        Performs a POST request to the specified path.
+
+        Args:
+            path (str): The path to request, relative to the base URL.
+            data (dict, optional): The data to send in the POST request.
+
+        Returns:
+            requests.Response: The response from the server.
         """
         url = f"{self.base_url}/{path}"
         return self.session.post(url, data=data, headers={"X-CSRFToken": self.session.cookies["csrftoken"]})
 
     def delete(self, path: str) -> requests.Response:
         """
-        DELETE path on this connection
+        Performs a DELETE request to the specified path.
+
+        Args:
+            path (str): The path to request, relative to the base URL.
+
+        Returns:
+            requests.Response: The response from the server.
         """
         url = f"{self.base_url}/{path}"
         return self.session.delete(url, headers={"X-CSRFToken": self.session.cookies["csrftoken"]})
 
     def login(self) -> None:
         """
-        Login to the server
+        Authenticates with the SMM server using the provided credentials.
         """
         self.get()
         self.post("/accounts/login/", data={"username": self.username, "password": self.password})
 
     def get_assets(self) -> list[SMMAsset]:
         """
-        Get all the assests associated with the logged in user
+        Retrieves all assets associated with the authenticated user.
+
+        Returns:
+            list[SMMAsset]: A list of SMMAsset objects.
         """
         assets_json = self.get_json("/assets/")["assets"]
         return [SMMAsset(self, asset_json["id"], asset_json["name"]) for asset_json in assets_json]
 
     def get_missions(self, only: str = "all") -> list[SMMMission]:
         """
-        Get all the missions the logged in user is a member of
+        Retrieves missions the authenticated user is a member of.
+
+        Args:
+            only (str): Filter for missions (e.g., 'all', 'active'). Defaults to 'all'.
+
+        Returns:
+            list[SMMMission]: A list of SMMMission objects.
         """
         missions_json = self.get_json(f"/mission/list/?only={only}")["missions"]
         return [SMMMission(self, mission_json["id"], mission_json["name"]) for mission_json in missions_json]
