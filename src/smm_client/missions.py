@@ -13,6 +13,7 @@ import requests
 
 from smm_client.geometry import SMMLine, SMMPoi, SMMPolygon
 from smm_client.organizations import SMMOrganization
+from smm_client.types import SMMMissionAssetsKeyError, SMMMissionOrgsKeyError
 
 if TYPE_CHECKING:
     from smm_client.assets import SMMAsset
@@ -207,7 +208,9 @@ class SMMMission:
         """
         Get all the current organizations in this mission
         """
-        organizations_json = self.get_json("organizations/")
+        data = self.get_json("organizations/")
+        if "organizations" not in data:
+            raise SMMMissionOrgsKeyError
         return [
             SMMMissionOrganization(
                 self,
@@ -215,7 +218,7 @@ class SMMMission:
                     self.connection, organization["organization"]["id"], organization["organization"]["name"]
                 ),
             )
-            for organization in organizations_json["organizations"]
+            for organization in data["organizations"]
         ]
 
     def add_asset(self, asset: SMMAsset) -> None:
@@ -267,7 +270,10 @@ class SMMMission:
         Use include="removed" to see get all assets that were ever in the mission
         """
         include_removed = str(include == "removed")
-        return self.connection.get_json(self.__url_component(f"assets/?include_removed={include_removed}"))
+        data = self.connection.get_json(self.__url_component(f"assets/?include_removed={include_removed}"))
+        if "assets" not in data:
+            raise SMMMissionAssetsKeyError
+        return data["assets"]
 
     def add_waypoint(self, point: SMMPoint, label: str) -> SMMPoi | None:
         """
