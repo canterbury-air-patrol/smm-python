@@ -124,10 +124,18 @@ class SMMMissionExternalReference:
 
 class SMMMission:
     """
-    Search Management Map - Mission
+    Represents a specific Search and Rescue mission in SMM.
     """
 
     def __init__(self, connection: SMMConnection, mission_id: int, name: str) -> None:
+        """
+        Initializes a mission object.
+
+        Args:
+            connection (SMMConnection): The connection to the SMM server.
+            mission_id (int): The unique ID of the mission.
+            name (str): The name of the mission.
+        """
         self.connection = connection
         self.id = mission_id
         self.name = name
@@ -140,32 +148,57 @@ class SMMMission:
 
     def post(self, page: str, data: object):
         """
-        Post data to a specific url in this mission
+        Performs a POST request to a mission-specific endpoint.
+
+        Args:
+            page (str): The endpoint path relative to the mission URL.
+            data (object): The data to send in the POST request.
         """
         return self.connection.post(self.__url_component(page), data)
 
     def get_json(self, page: str):
         """
-        Get data from a specific url in this mission
+        Performs a GET request to a mission-specific endpoint and returns JSON.
+
+        Args:
+            page (str): The endpoint path relative to the mission URL.
+
+        Returns:
+            dict: The parsed JSON response.
         """
         return self.connection.get_json(self.__url_component(page))
 
     def delete(self, page: str):
         """
-        Delete data on this mission
+        Performs a DELETE request to a mission-specific endpoint.
+
+        Args:
+            page (str): The endpoint path relative to the mission URL.
         """
         self.connection.delete(self.__url_component(page))
 
     def add_member(self, user: SMMUser) -> SMMMissionMember:
         """
-        Add a member to this mission
+        Adds a user as a member of this mission.
+
+        Args:
+            user (SMMUser): The user to add.
+
+        Returns:
+            SMMMissionMember: The membership object.
         """
         self.post("users/add/", data={"user": user.username})
         return SMMMissionMember(self, user)
 
     def add_organization(self, organization: SMMOrganization) -> SMMMissionOrganization:
         """
-        Add an organization to this mission
+        Adds an organization to this mission.
+
+        Args:
+            organization (SMMOrganization): The organization to add.
+
+        Returns:
+            SMMMissionOrganization: The organization membership object.
         """
         self.post("organizations/", data={"organization": organization.id})
         return SMMMissionOrganization(self, organization)
