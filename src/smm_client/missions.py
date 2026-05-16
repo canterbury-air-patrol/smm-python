@@ -13,7 +13,7 @@ import requests
 
 from smm_client.geometry import SMMLine, SMMPoi, SMMPolygon
 from smm_client.organizations import SMMOrganization
-from smm_client.types import SMMMissingKeyError
+from smm_client.types import SMMMissingKeyError, SMMParseError
 
 if TYPE_CHECKING:
     from smm_client.assets import SMMAsset
@@ -281,8 +281,11 @@ class SMMMission:
         """
         results = self.post("data/pois/create/", {"lat": point.lat, "lon": point.lng, "label": label})
         if results.status_code == requests.codes["ok"]:
-            json_obj = results.json()
-            return SMMPoi(self, json_obj["features"][0]["properties"]["pk"])
+            try:
+                json_obj = results.json()
+                return SMMPoi(self, json_obj["features"][0]["properties"]["pk"])
+            except (ValueError, requests.exceptions.JSONDecodeError, KeyError, IndexError) as exc:
+                raise SMMParseError("mission", exc) from exc
         return None
 
     def _populate_points(self, points: list[SMMPoint], label) -> object:
