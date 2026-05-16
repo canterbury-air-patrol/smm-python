@@ -57,6 +57,9 @@ omit = [
 smm_client = ["src/smm_client", "*/smm-client/src/smm_client"]
 tests = ["tests", "*/smm-client/tests"]
 
+[tool.ruff.lint]
+extend-ignore = ["EM101", "EM102", "TRY003"]
+
 [tool.coverage.report]
 exclude_lines = [
   "no cov",

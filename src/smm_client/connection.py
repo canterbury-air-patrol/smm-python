@@ -256,7 +256,9 @@ class SMMConnection:
             "/admin/mission/missionassetstatusvalue/add/",
             {"name": name, "description": description, "_continue": "Save+and+continue+editing"},
         )
-        return SMMMissionAssetStatusValue(_parse_redirect_id("mission asset status value", result.url), name, description)
+        return SMMMissionAssetStatusValue(
+            _parse_redirect_id("mission asset status value", result.url), name, description
+        )
 
     def get_mission_asset_status_values(self) -> list[SMMMissionAssetStatusValue]:
         """
