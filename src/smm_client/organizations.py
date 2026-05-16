@@ -10,6 +10,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from smm_client.assets import SMMAsset
+from smm_client.types import SMMMalformedDataError, SMMMissingKeyError
 
 if TYPE_CHECKING:
     from smm_client.connection import SMMUser
@@ -77,18 +78,23 @@ class SMMOrganization:
         Get all the members of this organization
         """
         organization = self.connection.get_json(self.__url_component(""))
-        return [
-            SMMOrganizationUser(
-                self,
-                member_json["user"],
-                member_json["role"],
-                member_json["added"],
-                member_json["added_by"],
-                member_json["removed"],
-                member_json["removed_by"],
-            )
-            for member_json in organization["members"]
-        ]
+        if "members" not in organization:
+            raise SMMMissingKeyError(self.__url_component(""), "members")
+        try:
+            return [
+                SMMOrganizationUser(
+                    self,
+                    member_json["user"],
+                    member_json["role"],
+                    member_json["added"],
+                    member_json["added_by"],
+                    member_json["removed"],
+                    member_json["removed_by"],
+                )
+                for member_json in organization["members"]
+            ]
+        except KeyError as exc:
+            raise SMMMalformedDataError("organization member", exc) from exc
 
     def add_member(self, user: SMMUser, role: str = "M") -> None:
         """
@@ -106,18 +112,23 @@ class SMMOrganization:
         """
         Get all the assets in this organization
         """
-        assets_json = self.connection.get_json(self.__url_component("assets/"))["assets"]
-        return [
-            SMMOrganizationAsset(
-                self,
-                SMMAsset(self.connection, asset_json["asset"]["id"], asset_json["asset"]["name"]),
-                asset_json["added"],
-                asset_json["added_by"],
-                asset_json["removed"],
-                asset_json["removed_by"],
-            )
-            for asset_json in assets_json
-        ]
+        data = self.connection.get_json(self.__url_component("assets/"))
+        if "assets" not in data:
+            raise SMMMissingKeyError(self.__url_component("assets/"), "assets")
+        try:
+            return [
+                SMMOrganizationAsset(
+                    self,
+                    SMMAsset(self.connection, asset_json["asset"]["id"], asset_json["asset"]["name"]),
+                    asset_json["added"],
+                    asset_json["added_by"],
+                    asset_json["removed"],
+                    asset_json["removed_by"],
+                )
+                for asset_json in data["assets"]
+            ]
+        except KeyError as exc:
+            raise SMMMalformedDataError("organization asset", exc) from exc
 
     def add_asset(self, asset: SMMAsset) -> None:
         """
