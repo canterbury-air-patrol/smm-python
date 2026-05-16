@@ -85,14 +85,21 @@ class SMMAsset:
 
     def get_status(self) -> SMMAssetStatus | None:
         """
-        Get the current status of this asset
+        Retrieves the current status of this asset from the SMM server.
+
+        Returns:
+            SMMAssetStatus: The current status object, or None if no status is found.
         """
         data = self.connection.get_json(self.__url_component("status/"))
         return SMMAssetStatus(self, data) if data else None
 
     def set_status(self, status: str, notes: str) -> None:
         """
-        Update the status of this asset
+        Updates the status of this asset on the SMM server.
+
+        Args:
+            status (str): The status value ID to set.
+            notes (str): Additional notes for this status update.
         """
         self.connection.post(
             self.__url_component("status/"),
@@ -104,7 +111,10 @@ class SMMAsset:
 
     def get_command(self) -> SMMAssetCommand | None:
         """
-        Get the command that currently applies to this asset
+        Retrieves the command currently assigned to this asset.
+
+        Returns:
+            SMMAssetCommand: The active command, or None if no command is assigned.
         """
         data = self.connection.get_json(self.__url_component("command/"))
         data = data["command"] if data and "command" in data and "issued" in data["command"] else None
@@ -115,8 +125,17 @@ class SMMAsset:
     ) -> SMMAssetCommand | None:
         # pylint: disable=R0913,R0917
         """
-        Set/Update the position of this asset
-        Will return the current asset command, if any
+        Updates the geographical position and telemetry of this asset.
+
+        Args:
+            lat (float): Latitude in decimal degrees.
+            lon (float): Longitude in decimal degrees.
+            fix (int): GPS fix status (e.g., 0 for no fix, 1 for fix).
+            alt (int, optional): Altitude in meters.
+            heading (int, optional): Heading in degrees (0-359).
+
+        Returns:
+            SMMAssetCommand: The current asset command, if any, returned by the server.
         """
         data = self.connection.post(
             f"/data/assets/{self.id}/position/add/",
