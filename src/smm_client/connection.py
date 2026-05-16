@@ -13,9 +13,11 @@ from smm_client.assets import SMMAsset, SMMAssetStatusValue, SMMAssetType
 from smm_client.missions import SMMMission, SMMMissionAssetStatusValue
 from smm_client.organizations import SMMOrganization
 from smm_client.types import (
+    SMMAssetRedirectError,
     SMMAssetsKeyError,
     SMMAssetStatusRedirectError,
     SMMAssetStatusValuesKeyError,
+    SMMAssetTypeRedirectError,
     SMMAssetTypesKeyError,
     SMMCSRFTokenError,
     SMMDeleteCSRFError,
@@ -24,9 +26,15 @@ from smm_client.types import (
     SMMJSONDecodeError,
     SMMLoginHTTPError,
     SMMLoginNoSessionError,
+    SMMMissionAssetStatusRedirectError,
+    SMMMissionAssetStatusValuesKeyError,
+    SMMMissionRedirectError,
     SMMMissionsKeyError,
+    SMMOrgParseError,
+    SMMOrgURLKeyError,
     SMMPostCSRFError,
     SMMPostHTTPError,
+    SMMUserRedirectError,
 )
 
 _MIN_REDIRECT_URL_PARTS = 3
@@ -259,13 +267,18 @@ class SMMConnection:
             {"name": name, "description": description, "_continue": "Save+and+continue+editing"},
         )
         url_parts = result.url.split("/")
+        if len(url_parts) < _MIN_REDIRECT_URL_PARTS:
+            raise SMMMissionAssetStatusRedirectError(result.url)
         return SMMMissionAssetStatusValue(url_parts[-3], name, description)
 
     def get_mission_asset_status_values(self) -> list[SMMMissionAssetStatusValue]:
         """
         Get all the mission asset status values
         """
-        mission_asset_status_values_json = self.get_json("/mission/asset/status/values/")["values"]
+        data = self.get_json("/mission/asset/status/values/")
+        if "values" not in data:
+            raise SMMMissionAssetStatusValuesKeyError
+        mission_asset_status_values_json = data["values"]
         return [
             SMMMissionAssetStatusValue(
                 asset_status_value["id"], asset_status_value["name"], asset_status_value["description"]
@@ -289,7 +302,10 @@ class SMMConnection:
         Get all Organizations
         """
         url = "/organization/" if all_orgs else "/organization/?only=mine"
-        organizations_json = self.get_json(url)["organizations"]
+        data = self.get_json(url)
+        if "organizations" not in data:
+            raise SMMOrgURLKeyError(url)
+        organizations_json = data["organizations"]
         return [
             SMMOrganization(self, organization_json["id"], organization_json["name"])
             for organization_json in organizations_json
@@ -304,6 +320,8 @@ class SMMConnection:
             {"username": username, "password1": password, "password2": password, "_save": "Save"},
         )
         url_parts = result.url.split("/")
+        if len(url_parts) < _MIN_REDIRECT_URL_PARTS:
+            raise SMMUserRedirectError(result.url)
         return SMMUser(url_parts[-3], username)
 
     def create_asset_type(self, asset_type: str, description: str) -> SMMAssetType:
@@ -315,6 +333,8 @@ class SMMConnection:
             {"name": asset_type, "description": description, "_continue": "Save+and+continue+editing"},
         )
         url_parts = result.url.split("/")
+        if len(url_parts) < _MIN_REDIRECT_URL_PARTS:
+            raise SMMAssetTypeRedirectError(result.url)
         return SMMAssetType(self, url_parts[-3], asset_type)
 
     def get_or_create_asset_type(self, asset_type: str, description: str) -> SMMAssetType:
@@ -337,6 +357,8 @@ class SMMConnection:
             {"name": asset, "owner": user.id, "asset_type": asset_type.id, "_continue": "Save+and+continue+editing"},
         )
         url_parts = result.url.split("/")
+        if len(url_parts) < _MIN_REDIRECT_URL_PARTS:
+            raise SMMAssetRedirectError(result.url)
         return SMMAsset(self, url_parts[-3], asset)
 
     def create_mission(self, name: str, description: str) -> SMMMission | None:
@@ -345,15 +367,22 @@ class SMMConnection:
         """
         res = self.post("/mission/new/", {"mission_name": name, "mission_description": description})
         if res.status_code == requests.codes["ok"]:
-            return SMMMission(self, res.url.split("/")[-3], name)
+            url_parts = res.url.split("/")
+            if len(url_parts) < _MIN_REDIRECT_URL_PARTS:
+                raise SMMMissionRedirectError(res.url)
+            return SMMMission(self, url_parts[-3], name)
         return None
 
     def create_organization(self, name: str) -> SMMOrganization:
         """
         Create a new organization
         """
-        org_json = self.post("/organization/", {"name": name}).json()
-        return SMMOrganization(self, org_json["id"], org_json["name"])
+        res = self.post("/organization/", {"name": name})
+        try:
+            org_json = res.json()
+            return SMMOrganization(self, org_json["id"], org_json["name"])
+        except (ValueError, requests.exceptions.JSONDecodeError, KeyError) as exc:
+            raise SMMOrgParseError(exc) from exc
 
     def get_or_create_organization(self, name: str) -> SMMOrganization:
         """
