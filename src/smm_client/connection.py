@@ -14,10 +14,14 @@ from smm_client.missions import SMMMission, SMMMissionAssetStatusValue
 from smm_client.organizations import SMMOrganization
 from smm_client.types import (
     SMMCSRFTokenError,
+    SMMDeleteCSRFError,
+    SMMDeleteHTTPError,
     SMMGetHTTPError,
     SMMJSONDecodeError,
     SMMLoginHTTPError,
     SMMLoginNoSessionError,
+    SMMPostCSRFError,
+    SMMPostHTTPError,
 )
 
 
@@ -99,9 +103,20 @@ class SMMConnection:
 
         Returns:
             requests.Response: The response from the server.
+
+        Raises:
+            SMMRequestError: If the request fails or CSRF token is missing.
         """
+        if "csrftoken" not in self.session.cookies:
+            raise SMMPostCSRFError
+
         url = f"{self.base_url}/{path}"
-        return self.session.post(url, data=data, headers={"X-CSRFToken": self.session.cookies["csrftoken"]})
+        response = self.session.post(url, data=data, headers={"X-CSRFToken": self.session.cookies["csrftoken"]})
+        try:
+            response.raise_for_status()
+        except requests.HTTPError as exc:
+            raise SMMPostHTTPError(path, exc) from exc
+        return response
 
     def delete(self, path: str) -> requests.Response:
         """
@@ -112,9 +127,20 @@ class SMMConnection:
 
         Returns:
             requests.Response: The response from the server.
+
+        Raises:
+            SMMRequestError: If the request fails or CSRF token is missing.
         """
+        if "csrftoken" not in self.session.cookies:
+            raise SMMDeleteCSRFError
+
         url = f"{self.base_url}/{path}"
-        return self.session.delete(url, headers={"X-CSRFToken": self.session.cookies["csrftoken"]})
+        response = self.session.delete(url, headers={"X-CSRFToken": self.session.cookies["csrftoken"]})
+        try:
+            response.raise_for_status()
+        except requests.HTTPError as exc:
+            raise SMMDeleteHTTPError(path, exc) from exc
+        return response
 
     def login(self) -> None:
         """

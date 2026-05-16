@@ -92,6 +92,42 @@ class SMMJSONDecodeError(SMMRequestError):
         super().__init__(f"Failed to decode JSON response from {path}: {exc}")
 
 
+class SMMPostCSRFError(SMMRequestError):
+    """
+    Exception raised when a POST request cannot be made due to a missing CSRF token.
+    """
+
+    def __init__(self) -> None:
+        super().__init__("Cannot perform POST request: Missing CSRF token. Are you logged in?")
+
+
+class SMMPostHTTPError(SMMRequestError):
+    """
+    Exception raised when an HTTP POST request fails.
+    """
+
+    def __init__(self, path: str, exc: Exception) -> None:
+        super().__init__(f"HTTP error during POST {path}: {exc}")
+
+
+class SMMDeleteCSRFError(SMMRequestError):
+    """
+    Exception raised when a DELETE request cannot be made due to a missing CSRF token.
+    """
+
+    def __init__(self) -> None:
+        super().__init__("Cannot perform DELETE request: Missing CSRF token. Are you logged in?")
+
+
+class SMMDeleteHTTPError(SMMRequestError):
+    """
+    Exception raised when an HTTP DELETE request fails.
+    """
+
+    def __init__(self, path: str, exc: Exception) -> None:
+        super().__init__(f"HTTP error during DELETE {path}: {exc}")
+
+
 class SMMPoint:
     # pylint: disable=R0903
     """
