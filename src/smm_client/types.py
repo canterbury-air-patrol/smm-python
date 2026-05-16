@@ -74,6 +74,24 @@ class SMMRequestError(SMMError):
     """
 
 
+class SMMGetHTTPError(SMMRequestError):
+    """
+    Exception raised when an HTTP GET request fails.
+    """
+
+    def __init__(self, path: str, exc: Exception) -> None:
+        super().__init__(f"HTTP error during GET {path}: {exc}")
+
+
+class SMMJSONDecodeError(SMMRequestError):
+    """
+    Exception raised when a JSON response cannot be decoded.
+    """
+
+    def __init__(self, path: str, exc: Exception) -> None:
+        super().__init__(f"Failed to decode JSON response from {path}: {exc}")
+
+
 class SMMPoint:
     # pylint: disable=R0903
     """
