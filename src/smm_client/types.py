@@ -41,6 +41,33 @@ class SMMAuthenticationError(SMMError):
     """
 
 
+class SMMCSRFTokenError(SMMAuthenticationError):
+    """
+    Exception raised when a CSRF token cannot be obtained from the server.
+    """
+
+    def __init__(self) -> None:
+        super().__init__("Failed to obtain CSRF token from server")
+
+
+class SMMLoginHTTPError(SMMAuthenticationError):
+    """
+    Exception raised when login fails with a non-OK HTTP status code.
+    """
+
+    def __init__(self, status_code: int) -> None:
+        super().__init__(f"Login failed with status code: {status_code}")
+
+
+class SMMLoginNoSessionError(SMMAuthenticationError):
+    """
+    Exception raised when login succeeds HTTP-wise but no session ID is received.
+    """
+
+    def __init__(self) -> None:
+        super().__init__("Login failed: No session ID received")
+
+
 class SMMRequestError(SMMError):
     """
     Exception raised for errors during a request to the SMM server.

@@ -12,6 +12,7 @@ import requests
 from smm_client.assets import SMMAsset, SMMAssetStatusValue, SMMAssetType
 from smm_client.missions import SMMMission, SMMMissionAssetStatusValue
 from smm_client.organizations import SMMOrganization
+from smm_client.types import SMMCSRFTokenError, SMMLoginHTTPError, SMMLoginNoSessionError
 
 
 # pylint: disable = R0903
@@ -104,7 +105,18 @@ class SMMConnection:
         Authenticates with the SMM server using the provided credentials.
         """
         self.get()
-        self.post("/accounts/login/", data={"username": self.username, "password": self.password})
+        if "csrftoken" not in self.session.cookies:
+            raise SMMCSRFTokenError
+
+        response = self.post("/accounts/login/", data={"username": self.username, "password": self.password})
+        if response.status_code != requests.codes["ok"]:
+            raise SMMLoginHTTPError(response.status_code)
+
+        # Check if we are still authenticated by trying to access a protected resource or checking cookies
+        # For now, we'll assume a 200 OK from the login POST means success,
+        # but some systems might return 200 even on failure (displaying a form error).
+        if "sessionid" not in self.session.cookies:
+            raise SMMLoginNoSessionError
 
     def get_assets(self) -> list[SMMAsset]:
         """
