@@ -12,7 +12,13 @@ import requests
 from smm_client.assets import SMMAsset, SMMAssetStatusValue, SMMAssetType
 from smm_client.missions import SMMMission, SMMMissionAssetStatusValue
 from smm_client.organizations import SMMOrganization
-from smm_client.types import SMMCSRFTokenError, SMMLoginHTTPError, SMMLoginNoSessionError
+from smm_client.types import (
+    SMMCSRFTokenError,
+    SMMGetHTTPError,
+    SMMJSONDecodeError,
+    SMMLoginHTTPError,
+    SMMLoginNoSessionError,
+)
 
 
 # pylint: disable = R0903
@@ -69,9 +75,19 @@ class SMMConnection:
 
         Returns:
             dict: The parsed JSON response.
+
+        Raises:
+            SMMRequestError: If the request fails or returns non-JSON content.
         """
         url = f"{self.base_url}/{path}"
-        return self.session.get(url, headers={"Accept": "application/json"}).json()
+        response = self.session.get(url, headers={"Accept": "application/json"})
+        try:
+            response.raise_for_status()
+            return response.json()
+        except requests.HTTPError as exc:
+            raise SMMGetHTTPError(path, exc) from exc
+        except (ValueError, requests.exceptions.JSONDecodeError) as exc:
+            raise SMMJSONDecodeError(path, exc) from exc
 
     def post(self, path: str, data=None) -> requests.Response:
         """
