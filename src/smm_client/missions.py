@@ -13,7 +13,7 @@ import requests
 
 from smm_client.geometry import SMMLine, SMMPoi, SMMPolygon
 from smm_client.organizations import SMMOrganization
-from smm_client.types import SMMMissionAssetsKeyError, SMMMissionOrgsKeyError
+from smm_client.types import SMMMissingKeyError
 
 if TYPE_CHECKING:
     from smm_client.assets import SMMAsset
@@ -210,7 +210,7 @@ class SMMMission:
         """
         data = self.get_json("organizations/")
         if "organizations" not in data:
-            raise SMMMissionOrgsKeyError
+            raise SMMMissingKeyError("organizations/", "organizations")
         return [
             SMMMissionOrganization(
                 self,
@@ -272,7 +272,7 @@ class SMMMission:
         include_removed = str(include == "removed")
         data = self.connection.get_json(self.__url_component(f"assets/?include_removed={include_removed}"))
         if "assets" not in data:
-            raise SMMMissionAssetsKeyError
+            raise SMMMissingKeyError("assets/", "assets")
         return data["assets"]
 
     def add_waypoint(self, point: SMMPoint, label: str) -> SMMPoi | None:
