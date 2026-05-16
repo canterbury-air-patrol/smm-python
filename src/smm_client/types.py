@@ -167,9 +167,10 @@ class SMMPoint:
     Latitude/Longitude combination
     """
 
+    _lat: float
+    _lng: float
+
     def __init__(self, latitude: float, longitude: float) -> None:
-        self._lat = None
-        self._lng = None
         self.lat = latitude
         self.lng = longitude
 
