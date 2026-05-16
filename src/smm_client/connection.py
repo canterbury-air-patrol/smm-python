@@ -14,6 +14,9 @@ from smm_client.missions import SMMMission, SMMMissionAssetStatusValue
 from smm_client.organizations import SMMOrganization
 from smm_client.types import (
     SMMAssetsKeyError,
+    SMMAssetStatusRedirectError,
+    SMMAssetStatusValuesKeyError,
+    SMMAssetTypesKeyError,
     SMMCSRFTokenError,
     SMMDeleteCSRFError,
     SMMDeleteHTTPError,
@@ -25,6 +28,8 @@ from smm_client.types import (
     SMMPostCSRFError,
     SMMPostHTTPError,
 )
+
+_MIN_REDIRECT_URL_PARTS = 3
 
 
 # pylint: disable = R0903
@@ -195,7 +200,10 @@ class SMMConnection:
         """
         Get all asset types
         """
-        asset_types_json = self.get_json("/assets/assettypes/")["asset_types"]
+        data = self.get_json("/assets/assettypes/")
+        if "asset_types" not in data:
+            raise SMMAssetTypesKeyError
+        asset_types_json = data["asset_types"]
         return [
             SMMAssetType(self, asset_type_json["id"], asset_type_json["name"]) for asset_type_json in asset_types_json
         ]
@@ -209,13 +217,18 @@ class SMMConnection:
             {"name": name, "description": description, "inop": inop, "_continue": "Save+and+continue+editing"},
         )
         url_parts = result.url.split("/")
+        if len(url_parts) < _MIN_REDIRECT_URL_PARTS:
+            raise SMMAssetStatusRedirectError(result.url)
         return SMMAssetStatusValue(url_parts[-3], name, description, inop=inop)
 
     def get_asset_status_values(self) -> list[SMMAssetStatusValue]:
         """
         Get all the asset status values
         """
-        asset_status_values_json = self.get_json("/assets/status/values/")["values"]
+        data = self.get_json("/assets/status/values/")
+        if "values" not in data:
+            raise SMMAssetStatusValuesKeyError
+        asset_status_values_json = data["values"]
         return [
             SMMAssetStatusValue(
                 asset_status_value["id"],
