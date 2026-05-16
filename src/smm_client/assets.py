@@ -161,8 +161,12 @@ class SMMAsset:
             "/search/find/closest/", data={"asset_id": self.id, "latitude": lat, "longitude": lon}
         )
         try:
-            return SMMSearch(self.connection, list(filter(len, data.json()["object_url"].split("/")))[-1])
-        except JSONDecodeError:
+            json_data = data.json()
+            if "object_url" not in json_data:
+                return None
+            search_id = list(filter(len, json_data["object_url"].split("/")))[-1]
+            return SMMSearch(self.connection, search_id)
+        except (JSONDecodeError, KeyError, IndexError):
             return None
 
     def get_asset_data(self):
