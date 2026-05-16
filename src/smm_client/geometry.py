@@ -91,7 +91,7 @@ class SMMLine(SMMGeometry):
         Create a trackline search along this line
         """
         result = self.connection.post(
-            "search/shoreline/create/",
+            "search/trackline/create/",
             data={"poi_id": self.geo_id, "asset_type_id": asset_type.id, "sweep_width": sweep_width},
         )
         if result.status_code == requests.codes["ok"]:
