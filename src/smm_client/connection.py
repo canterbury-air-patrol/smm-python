@@ -29,11 +29,11 @@ from smm_client.types import (
 _MIN_REDIRECT_URL_PARTS = 3
 
 
-def _parse_redirect_id(resource: str, url: str) -> str:
+def _parse_redirect_id(resource: str, url: str) -> int:
     url_parts = url.split("/")
     if len(url_parts) < _MIN_REDIRECT_URL_PARTS:
         raise SMMUnexpectedRedirectError(resource, url)
-    return url_parts[-_MIN_REDIRECT_URL_PARTS]
+    return int(url_parts[-_MIN_REDIRECT_URL_PARTS])
 
 
 # pylint: disable = R0903
@@ -122,7 +122,7 @@ class SMMConnection:
             raise SMMPostCSRFError
 
         url = f"{self.base_url}/{path}"
-        response = self.session.post(url, data=data, headers={"X-CSRFToken": self.session.cookies["csrftoken"]})
+        response = self.session.post(url, data=data, headers={"X-CSRFToken": str(self.session.cookies["csrftoken"])})
         try:
             response.raise_for_status()
         except requests.HTTPError as exc:
@@ -146,7 +146,7 @@ class SMMConnection:
             raise SMMDeleteCSRFError
 
         url = f"{self.base_url}/{path}"
-        response = self.session.delete(url, headers={"X-CSRFToken": self.session.cookies["csrftoken"]})
+        response = self.session.delete(url, headers={"X-CSRFToken": str(self.session.cookies["csrftoken"])})
         try:
             response.raise_for_status()
         except requests.HTTPError as exc:
