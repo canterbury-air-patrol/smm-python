@@ -29,6 +29,24 @@ class LongitudeError(ValueError):
         super().__init__(f"Longitude out of range ({MIN_LONGITUDE}, {MAX_LONGITUDE} degrees)")
 
 
+class SMMError(Exception):
+    """
+    Base class for exceptions in this module.
+    """
+
+
+class SMMAuthenticationError(SMMError):
+    """
+    Exception raised for authentication errors.
+    """
+
+
+class SMMRequestError(SMMError):
+    """
+    Exception raised for errors during a request to the SMM server.
+    """
+
+
 class SMMPoint:
     # pylint: disable=R0903
     """
