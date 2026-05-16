@@ -13,6 +13,7 @@ from smm_client.assets import SMMAsset, SMMAssetStatusValue, SMMAssetType
 from smm_client.missions import SMMMission, SMMMissionAssetStatusValue
 from smm_client.organizations import SMMOrganization
 from smm_client.types import (
+    SMMAssetsKeyError,
     SMMCSRFTokenError,
     SMMDeleteCSRFError,
     SMMDeleteHTTPError,
@@ -20,6 +21,7 @@ from smm_client.types import (
     SMMJSONDecodeError,
     SMMLoginHTTPError,
     SMMLoginNoSessionError,
+    SMMMissionsKeyError,
     SMMPostCSRFError,
     SMMPostHTTPError,
 )
@@ -167,7 +169,10 @@ class SMMConnection:
         Returns:
             list[SMMAsset]: A list of SMMAsset objects.
         """
-        assets_json = self.get_json("/assets/")["assets"]
+        data = self.get_json("/assets/")
+        if "assets" not in data:
+            raise SMMAssetsKeyError
+        assets_json = data["assets"]
         return [SMMAsset(self, asset_json["id"], asset_json["name"]) for asset_json in assets_json]
 
     def get_missions(self, only: str = "all") -> list[SMMMission]:
@@ -180,7 +185,10 @@ class SMMConnection:
         Returns:
             list[SMMMission]: A list of SMMMission objects.
         """
-        missions_json = self.get_json(f"/mission/list/?only={only}")["missions"]
+        data = self.get_json(f"/mission/list/?only={only}")
+        if "missions" not in data:
+            raise SMMMissionsKeyError
+        missions_json = data["missions"]
         return [SMMMission(self, mission_json["id"], mission_json["name"]) for mission_json in missions_json]
 
     def get_asset_types(self) -> list[SMMAssetType]:
