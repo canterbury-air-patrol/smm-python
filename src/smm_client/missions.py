@@ -324,8 +324,11 @@ class SMMMission:
         data = self._populate_points(points, label)
         results = self.post("data/userpolygons/create/", data)
         if results.status_code == requests.codes["ok"]:
-            json_obj = results.json()
-            return SMMPolygon(self, json_obj["features"][0]["properties"]["pk"])
+            try:
+                json_obj = results.json()
+                return SMMPolygon(self, json_obj["features"][0]["properties"]["pk"])
+            except (ValueError, requests.exceptions.JSONDecodeError, KeyError, IndexError) as exc:
+                raise SMMParseError("mission", exc) from exc
         return None
 
     @classmethod
