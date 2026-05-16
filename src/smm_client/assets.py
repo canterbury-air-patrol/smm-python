@@ -10,7 +10,7 @@ from __future__ import annotations
 from json import JSONDecodeError
 
 from smm_client.search import SMMSearch
-from smm_client.types import SMMPoint
+from smm_client.types import SMMAssetCommandMalformedError, SMMAssetStatusMalformedError, SMMPoint
 
 
 class SMMAssetStatusValue:
@@ -37,10 +37,13 @@ class SMMAssetStatus:
 
     def __init__(self, asset: SMMAsset, data: dict) -> None:
         self.asset = asset
-        self.status = data["status"]
-        self.inop = data["inop"]
-        self.since = data["since"]
-        self.notes = data["notes"]
+        try:
+            self.status = data["status"]
+            self.inop = data["inop"]
+            self.since = data["since"]
+            self.notes = data["notes"]
+        except KeyError as exc:
+            raise SMMAssetStatusMalformedError(exc) from exc
 
     def __str__(self) -> str:
         return f"Status of {self.asset.name} is '{self.status}' since {self.since}: {self.notes}"
@@ -54,16 +57,19 @@ class SMMAssetCommand:
 
     def __init__(self, asset: SMMAsset, data: dict) -> None:
         self.asset = asset
-        self.id = data["id"]
-        self.issued = data["issued"]
-        self.issued_by = data["issued_by"]
-        self.command = data["action_txt"]
-        if "latitude" in data and "longitude" in data:
-            self.position = SMMPoint(data["latitude"], data["longitude"])
-        self.reason = data["reason"]
-        self.responded_by = data["response"]["by"]
-        self.response_type = data["response"]["type"]
-        self.response_message = data["response"]["message"]
+        try:
+            self.id = data["id"]
+            self.issued = data["issued"]
+            self.issued_by = data["issued_by"]
+            self.command = data["action_txt"]
+            if "latitude" in data and "longitude" in data:
+                self.position = SMMPoint(data["latitude"], data["longitude"])
+            self.reason = data["reason"]
+            self.responded_by = data["response"]["by"]
+            self.response_type = data["response"]["type"]
+            self.response_message = data["response"]["message"]
+        except KeyError as exc:
+            raise SMMAssetCommandMalformedError(exc) from exc
 
     def __str__(self) -> str:
         return f"Command '{self.command}' issued to {self.asset.name} at {self.issued}: {self.reason}"
