@@ -29,6 +29,14 @@ class SMMGeometry:
         self.mission = mission
         self.geo_id = geo_id
 
+    def _parse_search_response(self, result: requests.Response, context: str) -> int | None:
+        if result.status_code != requests.codes["ok"]:
+            return None
+        try:
+            return result.json()["features"][0]["properties"]["pk"]
+        except (ValueError, KeyError, IndexError) as exc:
+            raise SMMParseError(context, exc) from exc
+
 
 class SMMPoi(SMMGeometry):
     """
@@ -43,13 +51,7 @@ class SMMPoi(SMMGeometry):
             "search/sector/create/",
             data={"poi_id": self.geo_id, "asset_type_id": asset_type.id, "sweep_width": sweep_width},
         )
-        if result.status_code == requests.codes["ok"]:
-            try:
-                json_obj = result.json()
-                return json_obj["features"][0]["properties"]["pk"]
-            except (ValueError, requests.exceptions.JSONDecodeError, KeyError, IndexError) as exc:
-                raise SMMParseError("sector search", exc) from exc
-        return None
+        return self._parse_search_response(result, "sector search")
 
     def create_expanding_box_search(
         self, sweep_width: int, asset_type: SMMAssetType, iterations: int, first_bearing: int = 0
@@ -67,13 +69,7 @@ class SMMPoi(SMMGeometry):
                 "first_bearing": first_bearing,
             },
         )
-        if result.status_code == requests.codes["ok"]:
-            try:
-                json_obj = result.json()
-                return json_obj["features"][0]["properties"]["pk"]
-            except (ValueError, requests.exceptions.JSONDecodeError, KeyError, IndexError) as exc:
-                raise SMMParseError("expanding box search", exc) from exc
-        return None
+        return self._parse_search_response(result, "expanding box search")
 
 
 class SMMLine(SMMGeometry):
@@ -89,13 +85,7 @@ class SMMLine(SMMGeometry):
             "search/shoreline/create/",
             data={"poi_id": self.geo_id, "asset_type_id": asset_type.id, "sweep_width": sweep_width},
         )
-        if result.status_code == requests.codes["ok"]:
-            try:
-                json_obj = result.json()
-                return json_obj["features"][0]["properties"]["pk"]
-            except (ValueError, requests.exceptions.JSONDecodeError, KeyError, IndexError) as exc:
-                raise SMMParseError("shoreline search", exc) from exc
-        return None
+        return self._parse_search_response(result, "shoreline search")
 
     def create_trackline_search(self, sweep_width: int, asset_type: SMMAssetType) -> int | None:
         """
@@ -105,13 +95,7 @@ class SMMLine(SMMGeometry):
             "search/trackline/create/",
             data={"poi_id": self.geo_id, "asset_type_id": asset_type.id, "sweep_width": sweep_width},
         )
-        if result.status_code == requests.codes["ok"]:
-            try:
-                json_obj = result.json()
-                return json_obj["features"][0]["properties"]["pk"]
-            except (ValueError, requests.exceptions.JSONDecodeError, KeyError, IndexError) as exc:
-                raise SMMParseError("trackline search", exc) from exc
-        return None
+        return self._parse_search_response(result, "trackline search")
 
     def create_creepingline_search(self, sweep_width: int, asset_type: SMMAssetType, width: int) -> int | None:
         """
@@ -121,13 +105,7 @@ class SMMLine(SMMGeometry):
             "search/creepingline/create/track/",
             data={"poi_id": self.geo_id, "asset_type_id": asset_type.id, "sweep_width": sweep_width, "width": width},
         )
-        if result.status_code == requests.codes["ok"]:
-            try:
-                json_obj = result.json()
-                return json_obj["features"][0]["properties"]["pk"]
-            except (ValueError, requests.exceptions.JSONDecodeError, KeyError, IndexError) as exc:
-                raise SMMParseError("creeping line search", exc) from exc
-        return None
+        return self._parse_search_response(result, "creeping line search")
 
 
 class SMMPolygon(SMMGeometry):
@@ -143,10 +121,4 @@ class SMMPolygon(SMMGeometry):
             "search/creepingline/create/polygon/",
             data={"poi_id": self.geo_id, "asset_type_id": asset_type.id, "sweep_width": sweep_width},
         )
-        if result.status_code == requests.codes["ok"]:
-            try:
-                json_obj = result.json()
-                return json_obj["features"][0]["properties"]["pk"]
-            except (ValueError, requests.exceptions.JSONDecodeError, KeyError, IndexError) as exc:
-                raise SMMParseError("polygon creeping line search", exc) from exc
-        return None
+        return self._parse_search_response(result, "polygon creeping line search")
