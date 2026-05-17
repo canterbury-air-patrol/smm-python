@@ -15,6 +15,16 @@ from smm_client.geometry import SMMLine, SMMPoi, SMMPolygon
 from smm_client.organizations import SMMOrganization
 from smm_client.types import SMMMissingKeyError, SMMParseError
 
+
+def _parse_geometry_pk(result: requests.Response, context: str) -> int | None:
+    if result.status_code != requests.codes["ok"]:
+        return None
+    try:
+        return result.json()["features"][0]["properties"]["pk"]
+    except (ValueError, KeyError, IndexError) as exc:
+        raise SMMParseError(context, exc) from exc
+
+
 if TYPE_CHECKING:
     from smm_client.assets import SMMAsset
     from smm_client.connection import SMMConnection, SMMUser
@@ -280,13 +290,8 @@ class SMMMission:
         Add a way point to this mission
         """
         results = self.post("data/pois/create/", {"lat": point.lat, "lon": point.lng, "label": label})
-        if results.status_code == requests.codes["ok"]:
-            try:
-                json_obj = results.json()
-                return SMMPoi(self, json_obj["features"][0]["properties"]["pk"])
-            except (ValueError, requests.exceptions.JSONDecodeError, KeyError, IndexError) as exc:
-                raise SMMParseError("mission", exc) from exc
-        return None
+        pk = _parse_geometry_pk(results, "mission waypoint")
+        return SMMPoi(self, pk) if pk is not None else None
 
     def _populate_points(self, points: list[SMMPoint], label) -> object:
         """
@@ -309,13 +314,8 @@ class SMMMission:
         """
         data = self._populate_points(points, label)
         results = self.post("data/userlines/create/", data)
-        if results.status_code == requests.codes["ok"]:
-            try:
-                json_obj = results.json()
-                return SMMLine(self, json_obj["features"][0]["properties"]["pk"])
-            except (ValueError, requests.exceptions.JSONDecodeError, KeyError, IndexError) as exc:
-                raise SMMParseError("mission", exc) from exc
-        return None
+        pk = _parse_geometry_pk(results, "mission line")
+        return SMMLine(self, pk) if pk is not None else None
 
     def add_polygon(self, points: list[SMMPoint], label: str) -> SMMPolygon | None:
         """
@@ -323,13 +323,8 @@ class SMMMission:
         """
         data = self._populate_points(points, label)
         results = self.post("data/userpolygons/create/", data)
-        if results.status_code == requests.codes["ok"]:
-            try:
-                json_obj = results.json()
-                return SMMPolygon(self, json_obj["features"][0]["properties"]["pk"])
-            except (ValueError, requests.exceptions.JSONDecodeError, KeyError, IndexError) as exc:
-                raise SMMParseError("mission", exc) from exc
-        return None
+        pk = _parse_geometry_pk(results, "mission polygon")
+        return SMMPolygon(self, pk) if pk is not None else None
 
     @classmethod
     def get_mission_for_asset(cls, asset: SMMAsset) -> SMMMission | None:
