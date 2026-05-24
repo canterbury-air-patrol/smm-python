@@ -175,6 +175,12 @@ class SMMAsset:
         """
         return self.connection.get_json(self.__url_component(""))
 
+    def get_mission_data(self):
+        """
+        Get the mission/search context for this asset
+        """
+        return self.connection.get_json(self.__url_component("mission/"))
+
     def __str__(self) -> str:
         return f"{self.name} ({self.id})"
 

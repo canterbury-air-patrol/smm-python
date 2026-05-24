@@ -321,7 +321,7 @@ class SMMMission:
         """
         Get the current mission for the asset
         """
-        data = asset.get_asset_data()
+        data = asset.get_mission_data()
         try:
             return SMMMission(asset.connection, data["mission_id"], data["mission_name"])
         except KeyError:
